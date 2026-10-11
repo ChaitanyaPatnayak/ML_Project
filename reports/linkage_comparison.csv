@@ -1,0 +1,4 @@
+Algorithm,Clusters,Silhouette Score (sampled),Davies-Bouldin Index,Calinski-Harabasz Index
+Agglomerative (Ward),5,0.1838232010120318,1.197455467267254,582.552177315665
+Agglomerative (Complete),5,0.7328314244914771,0.3006142614936438,135.7991543103386
+Agglomerative (Average),5,0.7553504504198947,0.13576622112245304,121.17393837594449
