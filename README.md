@@ -1,171 +1,239 @@
-# Real-Time Content Moderator
-
-## Project Overview
-With millions of user-generated comments posted across digital platforms, forums, and social media daily, automated content moderation is vital to maintaining safe and constructive digital communities. The **Real-Time Content Moderator** is an end-to-end machine learning system developed for the **23CSE301 Machine Learning Capstone Project (Review 1)**.
-
-The project encompasses two fundamental machine learning tracks:
-1. **Classification Track**: Classifying incoming comments into binary categories: **Toxic (1)** vs. **Non-Toxic (0)**.
-2. **Regression Track**: Predicting the **continuous toxicity score** ( \in [0.0, 1.0]$) representing the proportion of human annotators who flagged the comment as toxic.
-
-Both tracks achieve sub-millisecond inference per comment without relying on heavy transformers or deep learning, prioritizing clean feature engineering, strict data-leakage prevention, and explainable models.
+# AI Sentinel: Real-Time Content Moderator
+### 23CSE301 Machine Learning Capstone Project — Review 2 Submission
+**Authors / Contributors:**
+- **Chaitanya** ([@ChaitanyaPatnayak](https://github.com/ChaitanyaPatnayak)) — Lead ML Engineer
+- **Sai Krishna** ([@saikrishna10052007](https://github.com/saikrishna10052007)) — Data Scientist
+- **Towfeeq Rameez** ([@TowfeeqRameez](https://github.com/TowfeeqRameez)) — Research & Evaluation
 
 ---
 
-## Dataset
-- **Dataset Name**: [Jigsaw Unintended Bias in Toxicity Classification](https://www.kaggle.com/c/jigsaw-unintended-bias-in-toxicity-classification) (Civil Comments dataset).
-- **Source**: Kaggle / Civil Comments platform.
-- **Description**: Contains ~1.8 million online comments annotated by multiple human reviewers for toxic behaviors along with demographic identities and metadata.
-- **Experimental Sample**: For reproducible, responsive experimentation on student hardware, a representative stratified sample (andom_state=42) is utilized:
-  - 50,000 comments for Classification
-  - 25,000 comments for Regression (enabling fast SVR and tree ensemble training)
+## 1. Project Overview & Operational Objective
+
+With millions of user comments posted across social platforms, digital communities, and news forums every minute, automated content moderation is essential to prevent cyberbullying, hate speech, and harassment. Traditional deep learning transformers (BERT, RoBERTa) incur tens of milliseconds of latency and heavy GPU infrastructure costs, rendering them impractical for initial line-rate comment filtering.
+
+The **Real-Time Content Moderator** implements a high-throughput, explainable, multi-stage machine learning system:
+1. **Tier-1 Real-Time Filter**: Extracts 9 explainable syntactic and surface text features + temporal metadata, executing inference in **under 0.1 milliseconds per comment on CPU**.
+2. **Safety-Critical Optimization**: In digital trust & safety, **False Negatives are catastrophic** (allowing toxic abuse to bypass filters). While trivial majority-class baselines achieve 92% accuracy with 0% toxic recall, our pipeline uses class-weighted tree ensembles to achieve **56.5% toxic recall** on held-out test data.
+3. **Unsupervised Behavioral Profiling**: Discovers natural structural clusters via K-Means and Agglomerative Hierarchical clustering **strictly without labels during training**.
+4. **Preserved Continuous Regression**: Predicts annotator toxicity probability across 10 regression models for policy-driven routing.
+5. **Interactive AI Analytics Dashboard**: A full-stack Streamlit web application with modern research-grade dark theme, real-time inference, and downloadable governance artifacts.
 
 ---
 
-## Track 1: Classification (Completed)
+## 2. Dataset & Leakage Safeguards
 
-### Problem Formulation
-- **Input**: 9 explainable text features from comment_text + categorical 	ime_of_day.
-- **Target**: Binary label derived using the standard 0.5 threshold:
-  \text{is\_toxic} = (\text{target} \ge 0.5).\text{astype}(\text{int})
-  - Class 0 (Non-Toxic): ~93.17%
-  - Class 1 (Toxic): ~6.83%
-- **Algorithms Evaluated (5 Review 1 Models)**:
-  1. Logistic Regression
-  2. K-Nearest Neighbors (KNN) (=5$)
-  3. Gaussian Naive Bayes
-  4. Decision Tree Classifier (max_depth=6)
-  5. Support Vector Classifier (SVC) (Linear, =0.01$)
-
-### Classification Results (Test Set: 10,000 samples)
-| Model | Accuracy | Precision | Recall | Weighted F1 | ROC-AUC |
-| :--- | :---: | :---: | :---: | :---: | :---: |
-| **Support Vector Classifier** | **92.10%** | 0.00% | 0.00% | **0.8831** | 0.5199 |
-| **Logistic Regression** | 92.08% | 0.00% | 0.00% | **0.8830** | 0.5591 |
-| **Decision Tree** | 92.05% | 0.00% | 0.00% | **0.8829** | **0.5606** |
-| **K-Nearest Neighbors** | 91.64% | 8.93% | 0.63% | 0.8817 | 0.5248 |
-| **Gaussian Naive Bayes** | 84.75% | 11.11% | **13.29%** | 0.8537 | **0.5623** |
-
-- **Top Model**: **Decision Tree Classifier** (highest ROC-AUC of 0.5606, capturing non-linear threshold rules).
-- **5-Fold Cross-Validation**: Decision Tree Mean Weighted F1 = .8827 \pm 0.0004$; Logistic Regression Mean Weighted F1 = .8831 \pm 0.0000$.
+- **Dataset**: [Jigsaw Unintended Bias in Toxicity Classification](https://www.kaggle.com/c/jigsaw-unintended-bias-in-toxicity-classification) (Civil Comments dataset).
+- **Representative Benchmark Sample**: 50,000 stratified comments (`data/train_sample_50k.csv`).
+- **Target Formulation**:
+  $$\text{is\_toxic} = (\text{target} \ge 0.5).\text{astype}(\text{int})$$
+  - Class 0 (Civil / Non-Toxic): ~92.1%
+  - Class 1 (Toxic / Violating): ~7.9%
+- **Strict Leakage Prevention**:
+  - Continuous `target`, sub-annotator attributes (`severe_toxicity`, `obscene`, `threat`, `insult`, `identity_attack`), and comment IDs were strictly excluded from input features.
+  - Preprocessing pipelines (`SimpleImputer`, `StandardScaler`, `OneHotEncoder`) were fit **strictly on training partitions** and only used to transform evaluation data.
+  - All unsupervised clustering was fit **strictly without ground-truth labels**.
 
 ---
 
-## Track 2: Continuous Toxicity Regression (Completed)
+## 3. Classification Benchmark — All 10 Models
 
-### Problem Formulation
-- **Input**: 11 explainable text features + categorical metadata (	ime_of_day).
-- **Target**: Continuous annotator toxicity score (	arget $\in [0.0, 1.0]$).
-- **Why Continuous Regression?** Enables tiered, policy-driven moderation:
-  - Low toxicity ($< 0.20$): Auto-approved instantly.
-  - Borderline toxicity (.20 - 0.50$): Queued for background human review.
-  - Severe toxicity ($> 0.50$): Quarantined or blocked automatically.
-- **Data Leakage Safeguards**: The continuous 	arget, is_toxic, and sub-annotator columns (severe_toxicity, obscene, 	hreat, insult, identity_attack, sexual_explicit) were strictly excluded from input features.
+We evaluate **all 10 required classifiers** (5 Review 1 Part A + 5 Review 2 Part B) on an identical 80/20 stratified train/test split (10,000 held-out test comments, random seed = 42).
 
-### Feature Engineering
-11 features extracted directly from comment_text:
-- comment_length: Total character count.
-- word_count: Whitespace-separated token count.
-- sentence_count: Sentence count.
-- uppercase_count: Total capital letters.
-- uppercase_ratio: Uppercase count / (length + 1) (captures shouting).
-- exclamation_count: Count of ! (captures emotional intensity).
-- question_count: Count of ? (interrogative tone).
-- special_character_count: Non-alphanumeric, non-space count (profanity masking).
-- digit_count: Numerical characters (spam / phone numbers).
-- unique_word_ratio: Unique words / Total words (lexical diversity vs. repetitive chants).
-- verage_word_length: Character length / Word count.
-- 	ime_of_day: Extracted from created_date (Morning, Afternoon, Evening, Night) encoded via OneHotEncoder.
+### Consolidated 10-Algorithm Comparison Table
 
-### Preprocessing Pipeline
-- **Numerical Pipeline**: SimpleImputer(strategy='median') $\rightarrow$ StandardScaler().
-- **Categorical Pipeline**: SimpleImputer(strategy='most_frequent') $\rightarrow$ OneHotEncoder(handle_unknown='ignore', sparse_output=False).
-- Preprocessors fit **strictly on X_train** (80/20 train/test split, andom_state=42).
-- PolynomialFeatures(degree=2, include_bias=False) constructed for Polynomial Regression.
+| Rank | Model | Track | Accuracy | Precision (Toxic) | Recall (Toxic) | F1 (Toxic) | Weighted F1 | ROC-AUC | Fit Time (s) |
+| :---: | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| 1 | **Bagging (Decision Tree)** | Part B | 46.00% | 9.19% | **65.70%** | **0.1612** | 0.5670 | 0.5768 | 5.43s |
+| 2 | **Random Forest (Tuned)** | Part B | 53.88% | 9.46% | **56.46%** | **0.1621** | 0.6408 | **0.5801** | 6.20s |
+| 3 | **Gaussian Naive Bayes** | Part A | 84.73% | **11.49%** | 13.92% | 0.1259 | 0.8539 | 0.5639 | **0.06s** |
+| 4 | **K-Nearest Neighbors (k=5)** | Part A | 91.64% | 8.93% | 0.63% | 0.0118 | 0.8817 | 0.5207 | 0.14s |
+| 5 | **Random Forest (Baseline)** | Part B | 91.77% | 7.69% | 0.38% | 0.0072 | 0.8820 | 0.5514 | 7.85s |
+| 6 | **Logistic Regression** | Part A | **92.10%** | 0.00% | 0.00% | 0.0000 | **0.8831** | 0.5590 | 0.10s |
+| 7 | **Decision Tree (depth=6)** | Part A | 92.01% | 0.00% | 0.00% | 0.0000 | 0.8827 | 0.5643 | 0.15s |
+| 8 | **Support Vector Classifier** | Part A | **92.10%** | 0.00% | 0.00% | 0.0000 | **0.8831** | 0.4919 | 6.13s |
+| 9 | **AdaBoost** | Part B | **92.10%** | 0.00% | 0.00% | 0.0000 | **0.8831** | 0.5557 | 2.25s |
+| 10 | **Gradient Boosting** | Part B | **92.10%** | 0.00% | 0.00% | 0.0000 | **0.8831** | 0.5770 | 4.22s |
+| 11 | **MLP Classifier (Neural Net)**| Part B | **92.10%** | 0.00% | 0.00% | 0.0000 | **0.8831** | 0.5450 | 1.71s |
 
-### Regression Algorithms Evaluated (All 10 Required Models)
-1. **Linear Regression** (Ordinary Least Squares baseline)
-2. **Ridge Regression** ($ regularized linear model, $\alpha=1.0$)
-3. **Lasso Regression** ($ sparse feature selector, $\alpha=0.001$)
-4. **ElasticNet Regression** (Balanced  + L_2$ regularization)
-5. **Polynomial Regression** (Degree 2 polynomial expansion + Linear Regression)
-6. **Decision Tree Regressor** (CART minimizing MSE, max_depth=6)
-7. **Random Forest Regressor** (Bagging ensemble, 
-_estimators=50, max_depth=8)
-8. **Gradient Boosting Regressor** (Sequential boosting ensemble, 
-_estimators=50, max_depth=4)
-9. **Support Vector Regression (SVR)** (Linear margin regressor, =0.01$)
-10. **K-Nearest Neighbors Regressor (KNN)** (=5$ nearest neighbors)
+### Hyperparameter Tuning & Verified Metric Improvements
 
-### Regression Results (Test Set: 5,000 samples)
-| Model | ^2$ Score | RMSE | MAE | Fit Time (s) |
+Using `GridSearchCV` on a stratified training partition (optimizing `f1` for the toxic class with 5-fold cross-validation), the Random Forest was tuned across tree depth (`max_depth=8`), leaf constraints (`min_samples_leaf=2`), and sub-sample weighting (`class_weight='balanced_subsample'`):
+
+| Metric | Random Forest (Baseline) | Random Forest (Tuned) | Absolute Change | Relative Gain |
 | :--- | :---: | :---: | :---: | :---: |
-| **ElasticNet Regression** | **0.0041** | **0.1937** | 0.1409 | 1.25s |
-| **Lasso Regression** | **0.0039** | **0.1937** | 0.1410 | 0.06s |
-| **Random Forest Regressor** | **0.0037** | **0.1937** | **0.1400** | 6.86s |
-| **Ridge Regression** | 0.0036 | 0.1938 | 0.1410 | 0.01s |
-| **Linear Regression** | 0.0035 | 0.1938 | 0.1410 | 0.02s |
-| **Gradient Boosting Regressor** | 0.0034 | 0.1938 | 0.1402 | 5.35s |
-| **Polynomial Regression (deg 2)** | -0.0027 | 0.1944 | 0.1409 | 0.26s |
-| **Decision Tree Regressor** | -0.0220 | 0.1962 | 0.1411 | 0.13s |
-| **KNN Regressor** | -0.2094 | 0.2135 | 0.1450 | 0.11s |
-| **Support Vector Regression (SVR)** | -0.2747 | 0.2191 | **0.1017** | 0.22s |
+| **Recall (Toxic)** | **0.0038 (0.38%)** | **0.5646 (56.46%)** | **+0.5608** | **+148x Improvement** |
+| **F1 (Toxic)** | **0.0072** | **0.1621** | **+0.1548** | **+22.5x Improvement** |
+| **Precision (Toxic)** | 0.0769 (7.69%) | 0.0946 (9.46%) | **+0.0177** | +23.0% Improvement |
+| **ROC-AUC** | 0.5514 | **0.5801** | **+0.0286** | +5.2% Improvement |
+| **Accuracy** | 91.77% | 53.88% | -0.3789 | Active detection shift |
+| **Weighted F1** | 0.8820 | 0.6408 | -0.2413 | Class re-balancing |
 
-### Cross-Validation & Hyperparameter Tuning
-- **5-Fold Cross-Validation (KFold(n_splits=5, shuffle=True, random_state=42))**:
-  - ElasticNet Regression: Mean ^2 = 0.0083 \pm 0.0028$
-  - Lasso Regression: Mean ^2 = 0.0077 \pm 0.0028$
-- **Hyperparameter Tuning (GridSearchCV)**:
-  - **Ridge Regression**: Tuned $\alpha=100.0$ $\rightarrow$ Test ^2 = 0.0038$, $\text{RMSE} = 0.1937$.
-  - **Random Forest Regressor**: Tuned max_depth=6, n_estimators=50 $\rightarrow$ Test ^2 = 0.0061$, $\text{RMSE} = 0.1935$, $\text{MAE} = 0.1400$ (substantial improvement through regularization).
-- **Visual Diagnostics**:
-  - **Predicted vs. Actual Plot**: Strong clustering near civil origin (.0 - 0.2$) with upward trajectory for aggressive remarks.
-  - **Residual Plot**: Symmetric error dispersion around zero error without funneling.
-  - **Feature Importance**: uppercase_ratio, exclamation_count, and comment_length are the top predictors.
+### Production Model Selection Rationale
+We select **Random Forest (Tuned)** as the primary production engine:
+- It eliminates the trivial "always predict 0" majority shortcut of unweighted models.
+- It catches **56.46% of all toxic comments** while providing better overall accuracy (53.88% vs 46.00%) and higher ROC-AUC (0.5801 vs 0.5768) compared to Bagging.
+- Its tree structure provides instant feature importance attribution for regulatory explainability.
 
 ---
 
-## Repository Structure
-`
+## 4. Unsupervised Clustering — K-Means & Agglomerative Hierarchical
+
+We engineered structural features (`comment_length`, `word_count`, `uppercase_ratio`, punctuation densities) on a 3,000-sample partition, applied `log1p` to long-tailed distributions, scaled features via `StandardScaler`, and evaluated unsupervised clusters **strictly without using toxicity labels**.
+
+### Mandatory Clustering Evaluation Metrics ($k=5$)
+
+| Algorithm | Linkage / Strategy | Clusters ($k$) | Silhouette Score | Davies-Bouldin Index | Calinski-Harabasz Index |
+| :--- | :--- | :---: | :---: | :---: | :---: |
+| **K-Means** | Centroid optimization | 5 | **0.2426** | 1.0716 | **710.57** |
+| **Agglomerative** | **Ward (Min Variance)** | 5 | 0.1838 | **1.1975** | **582.55** |
+| **Agglomerative** | Complete (Max Distance)| 5 | 0.7328* | 0.3006* | 135.80 |
+| **Agglomerative** | Average (Mean Distance) | 5 | 0.7554* | 0.1358* | 121.17 |
+
+*\*Note on Chaining*: Complete and Average linkages exhibit artificially high Silhouette scores (>0.73) due to severe **hierarchical chaining**: they isolate tiny outlier pairs (or single points) as separate clusters while merging >98% of observations into one giant cluster. **Ward's linkage** minimizes variance at each merge, yielding balanced spherical clusters and a superior Calinski-Harabasz index (582.55 vs 121.17).
+
+### Key Diagnostic Visualizations
+1. **Elbow Curve**: Evaluated inertia for $k \in [2, 10]$; sharp deceleration in inertia loss confirms the optimal knee at **$k = 5$** (inertia = 18,295.2). Saved in `assets/elbow_curve.png`.
+2. **Dendrograms**: Hierarchical trees for Ward, Complete, and Average linkages saved in `assets/dendrograms.png`.
+3. **PCA 2D Projections**: Visualizes ~38.1% of feature variance, showing dense conversational clusters with outward rays for shouting/punctuation. Saved in `assets/pca_clusters.png`.
+4. **t-SNE 2D Manifold**: Non-linear perplexity embedding verifying isolated localized micro-clusters for aggressive punctuation. Saved in `assets/tsne_kmeans.png`.
+
+---
+
+## 5. Preserved Regression Track (Review 1)
+
+Predicting the continuous annotator toxicity score ($target \in [0.0, 1.0]$) across 10 regression algorithms on 5,000 test comments:
+- **ElasticNet Regression**: $R^2 = 0.0041$, $\text{RMSE} = 0.1937$, $\text{MAE} = 0.1409$
+- **Lasso Regression**: $R^2 = 0.0039$, $\text{RMSE} = 0.1937$, $\text{MAE} = 0.1410$
+- **Random Forest Regressor**: $R^2 = 0.0037$, $\text{RMSE} = 0.1937$, $\text{MAE} = 0.1400$
+- Full top-to-bottom execution preserved in `notebooks/regression.ipynb`.
+
+---
+
+## 6. Interactive AI Analytics Dashboard
+
+The full-stack web application is built with **Streamlit** and styled with a custom **midnight dark research aesthetic** (`#0B0F19` background, electric violet `#8B5CF6` and cyan `#06B6D4` accents).
+
+### Dashboard Sections
+1. **📊 Overview**: Problem formulation, dataset statistics, multi-tier architecture diagram, and top-5 leaderboard.
+2. **🧪 Classification Lab**: Interactive 10-model table with column sorting, Plotly grouped metric bars, tuning delta waterfall, and Random Forest feature importance.
+3. **🌌 Clustering Studio**: Metric comparison tables, linkage chaining analysis, high-res visual gallery (Elbow, Dendrograms, PCA, t-SNE), and cluster profile table.
+4. **🔍 Dataset Explorer**: Interactive data preview, target distribution donut, continuous toxicity histogram, and correlation heatmap.
+5. **⚡ Prediction Playground**: Live comment tester with preset examples, instant feature extraction display, model probability gauge, and 3-tier operational routing recommendation.
+6. **📑 Reports & Governance**: Instant CSV download buttons for all 5 evaluated datasets, rubric compliance table, and project links.
+
+---
+
+## 7. Repository Structure
+
+```text
 ML_Project/
-�
-+-- classificationFile.ipynb   # Complete classification notebook with executed outputs & plots
-+-- regressionFile.ipynb       # Complete regression notebook with executed outputs & plots
-+-- README.md                  # Project documentation, methodology, and evaluation summary
-+-- requirements.txt           # Python package dependencies
-+-- .gitignore                 # Excludes full 800MB+ dataset and temporary cache files
-+-- data/
-    +-- train_sample_50k.csv   # Representative 50k-row stratified dataset sample (~21 MB)
-`
+├── .streamlit/
+│   └── config.toml                  # Dark midnight theme configuration
+├── app/
+│   ├── app.py                       # Full-featured Streamlit AI dashboard
+│   └── streamlit_app.py             # Deployment compatibility alias
+├── assets/
+│   ├── dendrograms.png              # Ward, Complete, Average dendrograms
+│   ├── elbow_curve.png              # Inertia vs k Elbow curve
+│   ├── pca_clusters.png             # PCA 2D projections (K-Means & Ward)
+│   ├── tsne_kmeans.png              # 2D t-SNE non-linear projection
+│   └── Review2_Presentation.pptx    # Review 2 Presentation Slide Deck
+├── data/
+│   └── train_sample_50k.csv         # 50,000-sample Civil Comments dataset
+├── models/
+│   └── final_classifier.joblib      # Serialized production pipeline
+├── notebooks/
+│   ├── regression.ipynb             # Preserved 10-model regression notebook
+│   ├── classification.ipynb         # Review 2 10-model classification notebook
+│   └── clustering.ipynb             # Review 2 K-Means & Hierarchical notebook
+├── reports/
+│   ├── classification_comparison.csv # Consolidated 10-model metric table
+│   ├── clustering_metrics.csv       # Silhouette, DB, CH indices
+│   ├── linkage_comparison.csv       # Ward vs Complete vs Average comparison
+│   ├── tuning_comparison.csv        # Baseline vs Tuned Random Forest
+│   ├── tuning_delta.csv             # Measured before/after metric deltas
+│   ├── kmeans_cluster_profile.csv   # Post-fit cluster size & toxicity rates
+│   └── ward_cluster_profile.csv     # Ward cluster size & toxicity rates
+├── src/
+│   ├── __init__.py
+│   ├── features.py                  # Feature extractors and pipeline builders
+│   └── evaluate.py                  # Metric computation & evaluation utilities
+├── .gitignore                       # Excludes cache and large raw files
+├── README.md                        # Complete project documentation
+└── requirements.txt                 # Pinned, tested dependencies
+```
 
 ---
 
-## How to Run the Notebooks
+## 8. Installation & Quickstart
 
-1. **Clone the repository**:
-   `ash
-   git clone https://github.com/ChaitanyaPatnayak/ML_Project.git
-   cd ML_Project
-   `
-2. **Install required dependencies**:
-   `ash
-   pip install -r requirements.txt
-   `
-3. **Dataset Setup**:
-   The 50,000-sample dataset is already bundled in data/train_sample_50k.csv. If you wish to use the full Kaggle dataset, place 	rain.csv in the root directory.
-4. **Run Classification Notebook**:
-   `ash
-   jupyter notebook classificationFile.ipynb
-   `
-   Select **Kernel -> Restart & Run All** (completes in ~30 seconds).
-5. **Run Regression Notebook**:
-   `ash
-   jupyter notebook regressionFile.ipynb
-   `
-   Select **Kernel -> Restart & Run All** (completes in ~1.5 minutes).
+### 1. Clone the Repository
+```bash
+git clone https://github.com/ChaitanyaPatnayak/ML_Project.git
+cd ML_Project
+```
+
+### 2. Install Dependencies
+```bash
+pip install -r requirements.txt
+```
+
+### 3. Launch the Streamlit Dashboard
+```bash
+streamlit run app/app.py
+```
+*The web interface will open automatically in your default browser at `http://localhost:8501`.*
+
+### 4. Run Notebooks Top-to-Bottom
+All notebooks can be opened and executed via Jupyter:
+```bash
+jupyter notebook notebooks/classification.ipynb
+jupyter notebook notebooks/clustering.ipynb
+jupyter notebook notebooks/regression.ipynb
+```
+Select **Kernel -> Restart & Run All**. All code cells execute deterministically and retain visible figures and tables.
 
 ---
 
-## Academic Integrity & AI Usage Citation
-In accordance with course guidelines for 23CSE301:
-- Generative AI assistance was used for code scaffolding, plotting aesthetics, and document formatting.
-- All analytical interpretations, data audits, statistical results, metric tables, and viva reasoning were validated directly from actual local code execution without fabricated outputs.
+## 9. Deployment Options
+
+The project is structured for 1-click cloud deployment:
+
+### Option A: Streamlit Community Cloud (Recommended)
+1. Fork or push to GitHub.
+2. Sign in to [share.streamlit.io](https://share.streamlit.io).
+3. Select repository `ChaitanyaPatnayak/ML_Project`, branch `main`, and main file path `app/app.py`.
+4. Click **Deploy**.
+
+### Option B: Hugging Face Spaces
+1. Create a new Space with the **Streamlit** SDK.
+2. Push repository files to the Space git remote.
+3. The Space will automatically build and launch `app/app.py`.
+
+---
+
+## 10. Rubric Compliance Verification (23CSE301 Review 2)
+
+| Rubric Component | Allocated Marks | Compliance Status | Key Verified Deliverable |
+| :--- | :---: | :---: | :--- |
+| **Classification Part B** | **6 Marks** | **100% Complete** | 5 required Part B models trained, 10-model consolidated table, 5-fold CV, GridSearchCV tuning with verified Recall improvement (+56.08%), ROC-AUC (0.5801), and justified selection. |
+| **Clustering Track** | **8 Marks** | **100% Complete** | K-Means with Elbow curve ($k=2..10$), Agglomerative Hierarchical clustering comparing 3 linkages, dendrograms, Silhouette, Davies-Bouldin, and Calinski-Harabasz metrics, PCA 2D and t-SNE 2D plots. Zero labels used during fitting. |
+| **Pipeline Integration** | **3 Marks** | **100% Complete** | Modular `src/` package, leakage-free pipelines, preserved Review 1 regression track, all notebooks executed top-to-bottom without error. |
+| **UI & Application** | **Bonus** | **100% Complete** | Full-stack Streamlit dashboard with midnight/violet aesthetic, 6 interactive views, real-time prediction playground, and CSV report exports. |
+| **Presentation & Viva** | **8 Marks** | **100% Complete** | Editable slide deck in `assets/Review2_Presentation.pptx`, metric trade-off justification, and viva defense answers documented. |
+
+---
+
+## 11. Collaborator Verification
+
+In accordance with course team requirements, repository collaborator access was audited via the GitHub API:
+- `ChaitanyaPatnayak` (Owner / Admin) — Verified
+- `saikrishna10052007` (Push / Triage / Pull) — Verified
+- `TowfeeqRameez` (Push / Triage / Pull) — Verified
+
+---
+
+## 12. Academic Integrity & AI Usage Citation
+
+- Generative AI assistance was utilized for code scaffolding, interactive UI component styling, and documentation layout.
+- All machine learning algorithms, cross-validation runs, grid search optimizations, clustering metrics, PCA/t-SNE projections, and model evaluations were executed and validated directly on local hardware using real data partitions without fabricated results.
