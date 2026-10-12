@@ -5,6 +5,7 @@ Authors: Chaitanya, Sai Krishna, Towfeeq Rameez
 from __future__ import annotations
 
 import sys
+import time
 from pathlib import Path
 
 # Add project root to path for imports
@@ -21,10 +22,12 @@ import streamlit as st
 
 from src.features import (
     ALL_FEATURES,
+    HYBRID_FEATURES,
     NUMERICAL_FEATURES,
     extract_single_comment_features,
     get_current_time_category,
 )
+from src.moderation_policy import ModerationDecision, ModerationPolicy
 
 # Page configuration
 st.set_page_config(
@@ -46,6 +49,7 @@ CUSTOM_CSS = """
         --accent-violet: #8B5CF6;
         --accent-cyan: #06B6D4;
         --accent-emerald: #10B981;
+        --accent-amber: #F59E0B;
         --accent-rose: #F43F5E;
         --border-subtle: rgba(139, 92, 246, 0.2);
         --text-primary: #F8FAFC;
@@ -127,18 +131,23 @@ CUSTOM_CSS = """
     .badge-violet { background: rgba(139, 92, 246, 0.2); color: #C084FC; border: 1px solid rgba(139, 92, 246, 0.4); }
     .badge-cyan { background: rgba(6, 182, 212, 0.2); color: #38BDF8; border: 1px solid rgba(6, 182, 212, 0.4); }
     .badge-emerald { background: rgba(16, 185, 129, 0.2); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.4); }
+    .badge-amber { background: rgba(245, 158, 11, 0.2); color: #FBBF24; border: 1px solid rgba(245, 158, 11, 0.4); }
     .badge-rose { background: rgba(244, 63, 94, 0.2); color: #FB7185; border: 1px solid rgba(244, 63, 94, 0.4); }
 
     /* Prediction Card */
     .pred-box {
-        padding: 20px;
+        padding: 22px;
         border-radius: 12px;
         margin-top: 16px;
         border: 1px solid;
     }
     .pred-box-safe {
         background: rgba(16, 185, 129, 0.1);
-        border-color: rgba(16, 185, 129, 0.3);
+        border-color: rgba(16, 185, 129, 0.4);
+    }
+    .pred-box-warning {
+        background: rgba(245, 158, 11, 0.1);
+        border-color: rgba(245, 158, 11, 0.4);
     }
     .pred-box-toxic {
         background: rgba(244, 63, 94, 0.1);
@@ -178,6 +187,7 @@ def load_reports() -> dict[str, pd.DataFrame]:
         "classification": reports_dir / "classification_comparison.csv",
         "tuning": reports_dir / "tuning_comparison.csv",
         "delta": reports_dir / "tuning_delta.csv",
+        "surface_vs_hybrid": reports_dir / "model_comparison_surface_vs_hybrid.csv",
         "clustering": reports_dir / "clustering_metrics.csv",
         "linkage": reports_dir / "linkage_comparison.csv",
         "kmeans_profile": reports_dir / "kmeans_cluster_profile.csv",
@@ -209,6 +219,7 @@ def load_trained_model():
 
 reports = load_reports()
 model_artifact = load_trained_model()
+policy = ModerationPolicy(threshold_approve=0.30, threshold_quarantine=0.70, classification_threshold=0.50)
 
 # Sidebar Navigation & Meta
 with st.sidebar:
@@ -239,7 +250,7 @@ with st.sidebar:
     st.markdown("• **Sai Krishna** (Data Scientist)")
     st.markdown("• **Towfeeq Rameez** (Research & Evaluation)")
     st.divider()
-    st.caption("Powered by Scikit-Learn 1.8 & Streamlit")
+    st.caption("Scikit-Learn 1.8 | Streamlit | Plotly")
 
 
 # Helper for Plotly dark layout
@@ -274,14 +285,14 @@ if navigation == "📊 Overview":
     <div class="hero-container">
         <h1 class="hero-title">Real-Time Content Moderator</h1>
         <p class="hero-subtitle">
-            An end-to-end Machine Learning intelligence engine built for sub-millisecond toxicity triage,
+            An end-to-end Machine Learning intelligence engine built for toxicity triage,
             syntactic clustering, and explainable safety-critical content moderation.
         </p>
         <div style="margin-top: 14px;">
             <span class="badge badge-violet">Jigsaw Civil Comments (50k)</span>
-            <span class="badge badge-cyan">10 Classifiers Compared</span>
-            <span class="badge badge-emerald">Sub-millisecond Latency</span>
-            <span class="badge badge-rose">Class-Balanced Ensembles</span>
+            <span class="badge badge-cyan">10 Classifiers Evaluated</span>
+            <span class="badge badge-emerald">Production Hybrid Pipeline</span>
+            <span class="badge badge-amber">Synchronized Tri-Tier Policy</span>
         </div>
     </div>
     """,
@@ -314,8 +325,8 @@ if navigation == "📊 Overview":
         st.markdown(
             """
         <div class="metric-card">
-            <div class="metric-value">56.5%</div>
-            <div class="metric-label">Tuned Toxic Recall</div>
+            <div class="metric-value">0.8870</div>
+            <div class="metric-label">Production ROC-AUC</div>
         </div>
         """,
             unsafe_allow_html=True,
@@ -324,8 +335,8 @@ if navigation == "📊 Overview":
         st.markdown(
             """
         <div class="metric-card">
-            <div class="metric-value">&lt; 0.1 ms</div>
-            <div class="metric-label">Inference Latency</div>
+            <div class="metric-value">61.1%</div>
+            <div class="metric-label">Toxic-Class Recall</div>
         </div>
         """,
             unsafe_allow_html=True,
@@ -336,17 +347,19 @@ if navigation == "📊 Overview":
     col_left, col_right = st.columns([3, 2])
 
     with col_left:
-        st.subheader("🎯 Operational Problem Statement & Rationale")
+        st.subheader("🎯 Operational Problem Statement & Decision Policy")
         st.markdown(
             """
-        Digital social platforms process millions of user comments every minute. Traditional deep transformer models (like RoBERTa or BERT) 
-        require heavy GPU compute and impose tens of milliseconds of latency, creating massive cost bottlenecks for high-throughput stream ingestion.
+        Digital social platforms process millions of user comments every minute. Traditional deep transformer models (RoBERTa, BERT) 
+        impose heavy GPU infrastructure costs and latency bottlenecks for high-throughput stream ingestion.
         
-        This project designs a **two-tier scalable moderation system**:
-        1. **Tier-1 Real-Time Filter**: Lightweight, explainable surface-level structural text features (punctuation density, casing ratios, lexical diversity) 
-           capable of screening incoming comments in sub-millisecond CPU time.
+        This project designs a **rigorous two-tier scalable moderation system**:
+        1. **Hybrid Text + Syntactic Representation**: Combines 35,000 TF-IDF word/char n-grams with 9 surface features (casing, punctuation, lexical ratios) 
+           under class-balanced cross-entropy loss.
         2. **Safety-Critical Metric Formulation**: In online community safety, **False Negatives are catastrophic** (allowing severe hate speech or abuse to pass undetected). 
-           We deliberately target **Toxic-Class Recall** and **Toxic-Class F1** rather than deceptive raw accuracy, which is artificially inflated by 92% non-toxic majority class dominance.
+           We deliberately optimize **Toxic-Class Recall** and **Toxic-Class F1** rather than deceptive raw accuracy, which is artificially inflated by 92% non-toxic majority dominance.
+        3. **Synchronized Moderation Policy**: Enforces single-source-of-truth thresholds where uncertain/borderline comments (e.g. 30%–70% score) 
+           are strictly held for review and **never falsely approved**.
         """
         )
 
@@ -377,7 +390,7 @@ if navigation == "📊 Overview":
             )
 
     with col_right:
-        st.subheader("⚙️ Multi-Tier Architecture")
+        st.subheader("⚙️ Synchronized Multi-Tier Policy")
         st.markdown(
             """
         ```
@@ -385,21 +398,22 @@ if navigation == "📊 Overview":
                  │
                  ▼
         ┌─────────────────────────┐
-        │ Lightweight Pre-Filter  │ ◄ Sub-millisecond CPU
-        │ (Random Forest Tuned)   │
+        │ Production Hybrid Model │ ◄ TF-IDF + Surface
         └────────────┬────────────┘
                      │
          ┌───────────┼───────────┐
          ▼           ▼           ▼
-      P < 0.30   0.30 - 0.70   P > 0.70
-     Auto-Approve  Secondary   Quarantine
-      (Instant)   Async Review  (Auto-Flag)
+      P < 0.30   0.30 - 0.70   P >= 0.70
+     Tier 1:      Tier 2:       Tier 3:
+     APPROVED   HELD FOR      QUARANTINED
+     Auto-Pass   REVIEW        Auto-Block
+    (Safe Only) (Escalated)   (High Risk)
         ```
         """
         )
         st.info(
-            "💡 **Key Discovery**: While baseline unweighted models achieve 92% accuracy by simply predicting 0 for every comment, "
-            "our class-weighted tuned Random Forest boosts toxic recall from **0.38% to 56.46%** with an ROC-AUC of **0.5801**."
+            "💡 **Policy Invariant**: The decision rule strictly guarantees that borderline comments in Tier 2 ($30\\% \\le P < 70\\%$) "
+            "are **NEVER APPROVED**, eliminating contradictions between decision badges and operational routing."
         )
 
 
@@ -407,10 +421,28 @@ if navigation == "📊 Overview":
 # 2. CLASSIFICATION LAB
 # ==========================================
 elif navigation == "🧪 Classification Lab":
-    st.title("🧪 Classification Lab — All 10 Models")
+    st.title("🧪 Classification Lab — All 10 Models & Production Pipeline")
     st.markdown(
         "Consolidated benchmarking of **5 Review 1 Part A** and **5 Review 2 Part B** algorithms on the identical 80/20 stratified test set."
     )
+
+    # Production Comparison Banner
+    if "surface_vs_hybrid" in reports and not reports["surface_vs_hybrid"].empty:
+        st.subheader("🚀 Baseline (Surface-Only) vs Production (Hybrid Text+Surface)")
+        st.dataframe(
+            reports["surface_vs_hybrid"].style.format({
+                "Accuracy": "{:.2%}",
+                "Precision": "{:.2%}",
+                "Recall": "{:.2%}",
+                "F1 (Toxic)": "{:.4f}",
+                "Weighted F1": "{:.4f}",
+                "ROC-AUC": "{:.4f}",
+            }).background_gradient(subset=["F1 (Toxic)", "ROC-AUC"], cmap="Blues"),
+            use_container_width=True,
+        )
+        st.caption("Adding text n-grams to surface features increases ROC-AUC from 0.5801 to 0.8870 and Toxic F1 from 0.1621 to 0.5227 (over 3.2x relative gain).")
+
+    st.markdown("---")
 
     if "classification" in reports and not reports["classification"].empty:
         df_class = reports["classification"].copy()
@@ -419,7 +451,7 @@ elif navigation == "🧪 Classification Lab":
         c_filter1, c_filter2 = st.columns([2, 2])
         with c_filter1:
             sort_by = st.selectbox(
-                "Sort Table By:",
+                "Sort 10-Model Table By:",
                 ["F1 (Toxic)", "Recall", "ROC-AUC", "Accuracy", "Weighted F1", "Precision"],
                 index=0,
             )
@@ -434,6 +466,7 @@ elif navigation == "🧪 Classification Lab":
             by=sort_by, ascending=False
         )
 
+        st.subheader("📋 Consolidated 10-Algorithm Benchmark Table")
         st.dataframe(
             df_display.style.format({
                 "Accuracy": "{:.2%}",
@@ -443,7 +476,7 @@ elif navigation == "🧪 Classification Lab":
                 "Weighted F1": "{:.4f}",
                 "ROC-AUC": "{:.4f}",
                 "Fit Time (s)": "{:.2f}s",
-            }).background_gradient(subset=["F1 (Toxic)", "Recall", "ROC-AUC"], cmap="Blues"),
+            }).background_gradient(subset=["F1 (Toxic)", "Recall", "ROC-AUC"], cmap="Purples"),
             use_container_width=True,
         )
 
@@ -463,10 +496,6 @@ elif navigation == "🧪 Classification Lab":
 
         # Hyperparameter Tuning: Baseline vs Tuned Random Forest
         st.subheader("⚡ Hyperparameter Tuning — Baseline vs Tuned Random Forest")
-        st.markdown(
-            "GridSearchCV systematically optimized tree depth, leaf constraints, and ensemble sample weights on training folds without leaking test data."
-        )
-
         col_t1, col_t2 = st.columns([3, 2])
         with col_t1:
             if "tuning" in reports and not reports["tuning"].empty:
@@ -517,44 +546,6 @@ elif navigation == "🧪 Classification Lab":
             """,
                 unsafe_allow_html=True,
             )
-
-        # Feature Importance Visualization
-        st.subheader("🌲 Random Forest Feature Importances")
-        if model_artifact:
-            pipe = model_artifact["pipeline"]
-            try:
-                rf_model = pipe.named_steps["model"]
-                feature_names = model_artifact["feature_columns"]
-                # In Pipeline with ColumnTransformer, get feature names
-                transformer = pipe.named_steps["preprocess"]
-                num_names = transformer.transformers_[0][2]
-                cat_names = list(
-                    transformer.transformers_[1][1]
-                    .named_steps["onehot"]
-                    .get_feature_names_out(transformer.transformers_[1][2])
-                )
-                all_transformed_names = list(num_names) + cat_names
-
-                importances = rf_model.feature_importances_
-                df_imp = pd.DataFrame({
-                    "Feature": all_transformed_names[: len(importances)],
-                    "Importance": importances,
-                }).sort_values(by="Importance", ascending=True)
-
-                fig_imp = px.bar(
-                    df_imp,
-                    x="Importance",
-                    y="Feature",
-                    orientation="h",
-                    color="Importance",
-                    color_continuous_scale="Purples",
-                )
-                dark_plotly_layout(fig_imp, "Trained Feature Importance Distribution", height=400)
-                st.plotly_chart(fig_imp, use_container_width=True)
-            except Exception as e:
-                st.caption(f"Feature importance rendering: {e}")
-    else:
-        st.warning("No classification report data found. Please run notebooks/classification.ipynb first.")
 
 
 # ==========================================
@@ -616,8 +607,6 @@ elif navigation == "🌌 Clustering Studio":
             elbow_img = ROOT_DIR / "assets" / "elbow_curve.png"
             if elbow_img.exists():
                 st.image(str(elbow_img), use_container_width=True)
-            else:
-                st.info("Elbow curve image located in assets/elbow_curve.png")
 
             st.markdown("#### 3. PCA 2D Cluster Visualizations")
             pca_img = ROOT_DIR / "assets" / "pca_clusters.png"
@@ -752,28 +741,43 @@ elif navigation == "🔍 Dataset Explorer":
 # 5. PREDICTION PLAYGROUND
 # ==========================================
 elif navigation == "⚡ Prediction Playground":
-    st.title("⚡ Prediction Playground — Real-Time Inference")
-    st.markdown("Live sub-millisecond toxicity triage powered by the trained, class-weighted Random Forest pipeline.")
+    st.title("⚡ Prediction Playground — Production Inference")
+    st.markdown("Live toxicity evaluation powered by the trained, class-balanced production pipeline and synchronized decision policy.")
 
     if not model_artifact:
-        st.error("No model artifact found at models/final_classifier.joblib. Run notebooks/classification.ipynb first.")
+        st.error("No model artifact found at models/final_classifier.joblib. Run train_production_model.py first.")
     else:
         pipeline = model_artifact["pipeline"]
-        model_name = model_artifact.get("model_name", "Random Forest (tuned)")
+        model_name = model_artifact.get("model_name", "Production Classifier")
         feature_cols = model_artifact.get("feature_columns", ALL_FEATURES)
 
-        # Example comments presets
+        # Policy configuration expander
+        with st.expander("⚙️ Decision Threshold Policy & Model Metadata", expanded=False):
+            st.markdown(f"**Loaded Model:** `{model_name}`")
+            st.markdown(f"**Feature Dimensions:** `{len(feature_cols)} input columns` (text + 9 surface features + time_of_day)")
+            st.markdown(
+                r"""
+            - **Auto-Approve Threshold ($\tau_{\text{approve}}$):** `30.0%` (Only comments with $P(\text{Toxic}) < 30\%$ are auto-approved)
+            - **Classification Cutoff:** `50.0%` ($P \ge 50\%$ maps to binary class 1)
+            - **Auto-Quarantine Threshold ($\tau_{\text{quarantine}}$):** `70.0%` (Comments with $P(\text{Toxic}) \ge 70\%$ are quarantined)
+            - **Borderline Ambiguity Window:** `[30.0%, 70.0%)` (Strictly held for secondary review; **NEVER APPROVED**)
+            """
+            )
+
+        # Presets including bug reproduction and edge cases
         presets = {
             "Select an example...": "",
-            "Civil Debate": "I respectfully disagree with your conclusion regarding tax policy, though your point on tariffs is well argued.",
-            "Hostile Shouting": "YOU ARE A COMPLETE MORON AND A DISGUSTING LIAR GET LOST RIGHT NOW!!!!",
-            "Benign Enthusiastic (Caps & Punctuation)": "CONGRATULATIONS ON PASSING YOUR EXAMS BROTHER I AM SO PROUD OF YOU!!!!",
-            "Subtle Civil": "The weather today has been unusually calm for mid-October.",
+            "Borderline Admonition (Bug Case)": "Mind your fucking Language",
+            "Severe Hostile Attack": "Shut your ugly mouth you disgusting pig and get lost.",
+            "Civil Disagreement": "I respectfully disagree with your conclusion regarding tax policy, though your point on tariffs is well argued.",
+            "Benign Shouting (High Caps)": "CONGRATULATIONS ON PASSING YOUR EXAMS BROTHER I AM SO PROUD OF YOU!!!!",
+            "Colloquial / Enthusiastic Profanity": "Holy shit I cannot believe that actually worked",
+            "Neutral Observation": "The weather today has been unusually calm for mid-October.",
         }
 
         col_preset, col_tod = st.columns([3, 1])
         with col_preset:
-            selected_preset = st.selectbox("Quick Preset Demonstrations:", list(presets.keys()))
+            selected_preset = st.selectbox("Quick Benchmark Presets:", list(presets.keys()))
         with col_tod:
             selected_tod = st.selectbox(
                 "Time of Day:",
@@ -783,35 +787,59 @@ elif navigation == "⚡ Prediction Playground":
 
         default_text = presets[selected_preset] if selected_preset != "Select an example..." else ""
         comment_input = st.text_area(
-            "Enter Comment Text for Live Moderation:",
+            "Enter Comment Text for Moderation:",
             value=default_text,
-            height=140,
+            height=130,
             placeholder="Type or paste any online comment here...",
         )
 
-        if st.button("🛡️ Run Real-Time Triage", type="primary", use_container_width=True):
+        if st.button("🛡️ Run Synchronized Moderation Triage", type="primary", use_container_width=True):
             if not comment_input.strip():
-                st.warning("Please enter a valid comment before running triage.")
+                st.warning("Please enter valid comment text before running triage.")
             else:
                 # 1. Feature Extraction
                 df_single = extract_single_comment_features(comment_input, selected_tod, feature_cols)
 
-                # 2. Prediction
-                pred = int(pipeline.predict(df_single)[0])
-                prob = pipeline.predict_proba(df_single)[0]
-                toxic_score = float(prob[1])
+                # 2. Timed Evaluation through ModerationPolicy
+                t_start = time.perf_counter()
+                decision = policy.evaluate(pipeline, df_single, comment_input)
+                latency_ms = (time.perf_counter() - t_start) * 1000.0
 
-                st.subheader("🔍 Triage Decision")
+                st.subheader("🔍 Evaluated Moderation Decision")
+
+                # Metrics overview row
+                m_col1, m_col2, m_col3, m_col4 = st.columns(4)
+                with m_col1:
+                    st.metric("Toxic Probability P(Toxic)", f"{decision.toxic_probability:.1%}")
+                with m_col2:
+                    st.metric("Civil Probability P(Civil)", f"{decision.civil_probability:.1%}")
+                with m_col3:
+                    st.metric("Binary Class (Cutoff=50%)", f"{decision.predicted_class} ({decision.predicted_label})")
+                with m_col4:
+                    st.metric("Measured Latency", f"{latency_ms:.2f} ms")
+
                 res_col1, res_col2 = st.columns([2, 3])
 
                 with res_col1:
-                    if pred == 1 or toxic_score >= 0.50:
+                    # Action banner strictly synchronized with routing tier
+                    if decision.decision_action == "APPROVED":
                         st.markdown(
                             f"""
-                        <div class="pred-box pred-box-toxic">
-                            <h3 style="color: #FB7185; margin: 0;">⚠️ FLAGGED: TOXIC</h3>
-                            <p style="color: #94A3B8; margin: 6px 0 0 0;">Comment exceeds automated safety threshold.</p>
-                            <h2 style="color: #F43F5E; margin: 12px 0 0 0;">{toxic_score:.1%} Probability</h2>
+                        <div class="pred-box pred-box-safe">
+                            <h3 style="color: #34D399; margin: 0;">✅ APPROVED: SAFE</h3>
+                            <p style="color: #94A3B8; margin: 6px 0 0 0;">Comment risk is below auto-approval cutoff (30%).</p>
+                            <h2 style="color: #10B981; margin: 12px 0 0 0;">{decision.toxic_probability:.1%} P(Toxic)</h2>
+                        </div>
+                        """,
+                            unsafe_allow_html=True,
+                        )
+                    elif decision.decision_action == "HELD FOR REVIEW":
+                        st.markdown(
+                            f"""
+                        <div class="pred-box pred-box-warning">
+                            <h3 style="color: #FBBF24; margin: 0;">🟡 HELD FOR REVIEW</h3>
+                            <p style="color: #94A3B8; margin: 6px 0 0 0;">Borderline ambiguity window [30%, 70%). NOT approved.</p>
+                            <h2 style="color: #F59E0B; margin: 12px 0 0 0;">{decision.toxic_probability:.1%} P(Toxic)</h2>
                         </div>
                         """,
                             unsafe_allow_html=True,
@@ -819,28 +847,31 @@ elif navigation == "⚡ Prediction Playground":
                     else:
                         st.markdown(
                             f"""
-                        <div class="pred-box pred-box-safe">
-                            <h3 style="color: #34D399; margin: 0;">✅ APPROVED: NON-TOXIC</h3>
-                            <p style="color: #94A3B8; margin: 6px 0 0 0;">Comment is safe for publication.</p>
-                            <h2 style="color: #10B981; margin: 12px 0 0 0;">{toxic_score:.1%} Probability</h2>
+                        <div class="pred-box pred-box-toxic">
+                            <h3 style="color: #FB7185; margin: 0;">🔴 QUARANTINED</h3>
+                            <p style="color: #94A3B8; margin: 6px 0 0 0;">High toxicity confidence exceeds quarantine threshold (70%).</p>
+                            <h2 style="color: #F43F5E; margin: 12px 0 0 0;">{decision.toxic_probability:.1%} P(Toxic)</h2>
                         </div>
                         """,
                             unsafe_allow_html=True,
                         )
 
                 with res_col2:
-                    st.markdown("#### Operational Moderation Routing")
-                    if toxic_score < 0.30:
-                        st.success("🟢 **Tier 1 - Instant Auto-Approval**: Published immediately with <0.1ms latency.")
-                    elif toxic_score <= 0.70:
+                    st.markdown("#### Operational Routing Action")
+                    if decision.decision_action == "APPROVED":
+                        st.success(f"🟢 **{decision.routing_tier}**: Safe to publish immediately without review.")
+                    elif decision.decision_action == "HELD FOR REVIEW":
                         st.warning(
-                            "🟡 **Tier 2 - Ambiguous / Borderline**: Routed to secondary inspection queue (queued for asynchronous LLM/human review)."
+                            f"🟡 **{decision.routing_tier}**: {decision.explanation}"
                         )
                     else:
-                        st.error("🔴 **Tier 3 - Severe Harm Quarantine**: Temporarily held; author prompted to edit.")
+                        st.error(f"🔴 **{decision.routing_tier}**: {decision.explanation}")
 
-                    st.markdown("#### Extracted Surface Features")
-                    st.dataframe(df_single.T.rename(columns={0: "Extracted Value"}), use_container_width=True)
+                    st.markdown(f"**Epistemic Ambiguity Score:** `{decision.uncertainty_score:.2f}` (1.0 = maximum ambiguity near 50%, 0.0 = decisive)")
+
+                st.markdown("#### Extracted Surface Feature Vector")
+                feat_display = df_single.drop(columns=["comment_text"], errors="ignore").T
+                st.dataframe(feat_display.rename(columns={0: "Feature Value"}), use_container_width=True)
 
 
 # ==========================================
@@ -857,6 +888,14 @@ elif navigation == "📑 Reports & Governance":
         r_col1, r_col2 = st.columns(2)
 
         with r_col1:
+            if "surface_vs_hybrid" in reports and not reports["surface_vs_hybrid"].empty:
+                st.download_button(
+                    label="📄 Download Baseline vs Production Comparison (CSV)",
+                    data=reports["surface_vs_hybrid"].to_csv(index=False),
+                    file_name="model_comparison_surface_vs_hybrid.csv",
+                    mime="text/csv",
+                    use_container_width=True,
+                )
             if "classification" in reports and not reports["classification"].empty:
                 st.download_button(
                     label="📄 Download 10-Model Classification Comparison (CSV)",
@@ -901,7 +940,7 @@ elif navigation == "📑 Reports & Governance":
         | **Classification Part B (6 Marks)** | 5 Required Part B Models (RF, AdaBoost, GBDT, Bagging, MLP) | ✅ Complete | All 5 trained on identical 80/20 stratified split |
         | | 10-Model Consolidated Comparison Table | ✅ Complete | Single table with Accuracy, Precision, Recall, Toxic F1, Weighted F1, ROC-AUC |
         | | Cross-Validation & Hyperparameter Tuning | ✅ Complete | 5-fold CV & GridSearchCV with measured metric gains |
-        | | Justified Model Selection | ✅ Complete | Selected Random Forest based on safety-critical Toxic Recall (+56.08%) |
+        | | Production Hybrid Pipeline | ✅ Complete | Upgraded to 35k TF-IDF n-grams + surface features (ROC-AUC: 0.8870, F1: 0.5227) |
         | **Clustering Track (8 Marks)** | K-Means with Elbow Curve & Inertia | ✅ Complete | Inertia evaluated for $k=2..10$, elbow justified at $k=5$ |
         | | Agglomerative Hierarchical Clustering | ✅ Complete | Ward, Complete, and Average linkages compared with dendrograms |
         | | Mandatory Metrics (Silhouette, DB, CH) | ✅ Complete | All 3 reported for both algorithms and 3 linkage types |
@@ -909,7 +948,7 @@ elif navigation == "📑 Reports & Governance":
         | | No Ground-Truth Labels During Fitting | ✅ Complete | Labels strictly excluded from clustering feature matrix |
         | **Pipeline Integration (3 Marks)** | Leakage-Free Preprocessing | ✅ Complete | ColumnTransformer fit strictly on training splits |
         | | Preserved Review 1 Regression Track | ✅ Complete | All 10 regression models preserved and verified |
-        | | Notebooks Top-to-Bottom Execution | ✅ Complete | All 3 notebooks executed with zero saved errors |
-        | **UI & Dashboard (Bonus)** | Responsive Streamlit Application | ✅ Complete | Deep midnight theme with real model inference |
+        | | Synchronized Moderation Policy | ✅ Complete | Unit-tested policy enforcing mutual exclusivity across routing tiers |
+        | **UI & Application (Bonus)** | Responsive Streamlit Application | ✅ Complete | Deep midnight theme with synchronized triage decisions |
         """
         )

@@ -6,9 +6,12 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 from sklearn.compose import ColumnTransformer
+from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
+
+TEXT_FEATURE = 'comment_text'
 
 NUMERICAL_FEATURES = [
     'comment_length',
@@ -24,7 +27,9 @@ NUMERICAL_FEATURES = [
 
 CATEGORICAL_FEATURES = ['time_of_day']
 
-ALL_FEATURES = NUMERICAL_FEATURES + CATEGORICAL_FEATURES
+SURFACE_FEATURES = NUMERICAL_FEATURES + CATEGORICAL_FEATURES
+HYBRID_FEATURES = [TEXT_FEATURE] + NUMERICAL_FEATURES + CATEGORICAL_FEATURES
+ALL_FEATURES = HYBRID_FEATURES
 
 
 def extract_text_features(df: pd.DataFrame, text_column: str = 'comment_text') -> pd.DataFrame:
@@ -36,24 +41,24 @@ def extract_text_features(df: pd.DataFrame, text_column: str = 'comment_text') -
     words = text.str.split()
     word_counts = words.str.len().fillna(0).astype(int)
 
-    df_out['comment_length'] = lengths
-    df_out['word_count'] = word_counts
+    df_out['comment_length'] = lengths.astype(float)
+    df_out['word_count'] = word_counts.astype(float)
 
     # Uppercase ratio
     uppercase_counts = text.apply(lambda s: sum(1 for c in s if c.isupper()))
-    df_out['uppercase_ratio'] = uppercase_counts / (lengths + 1)
+    df_out['uppercase_ratio'] = (uppercase_counts / (lengths + 1)).astype(float)
 
     # Punctuation counts
-    df_out['exclamation_count'] = text.str.count(r'!')
-    df_out['question_count'] = text.str.count(r'\?')
+    df_out['exclamation_count'] = text.str.count(r'!').astype(float)
+    df_out['question_count'] = text.str.count(r'\?').astype(float)
 
     # Special characters and digits
-    df_out['special_character_count'] = text.apply(lambda s: sum(1 for c in s if not c.isalnum() and not c.isspace()))
-    df_out['digit_count'] = text.apply(lambda s: sum(1 for c in s if c.isdigit()))
+    df_out['special_character_count'] = text.apply(lambda s: sum(1 for c in s if not c.isalnum() and not c.isspace())).astype(float)
+    df_out['digit_count'] = text.apply(lambda s: sum(1 for c in s if c.isdigit())).astype(float)
 
     # Lexical richness and average word length
-    df_out['unique_word_ratio'] = words.apply(lambda w: len(set(w)) / (len(w) + 1e-5) if len(w) > 0 else 0.0)
-    df_out['average_word_length'] = lengths / (word_counts + 1e-5)
+    df_out['unique_word_ratio'] = words.apply(lambda w: len(set(w)) / (len(w) + 1e-5) if len(w) > 0 else 0.0).astype(float)
+    df_out['average_word_length'] = (lengths / (word_counts + 1e-5)).astype(float)
 
     return df_out
 
@@ -94,7 +99,7 @@ def build_preprocessor(
     num_cols: list[str] = NUMERICAL_FEATURES,
     cat_cols: list[str] = CATEGORICAL_FEATURES,
 ) -> ColumnTransformer:
-    """Build a leakage-free ColumnTransformer for numerical scaling and categorical encoding."""
+    """Build a leakage-free ColumnTransformer for numerical scaling and categorical encoding (Surface baseline)."""
     num_pipeline = Pipeline([
         ('imputer', SimpleImputer(strategy='median')),
         ('scaler', StandardScaler())
@@ -113,19 +118,54 @@ def build_preprocessor(
     )
 
 
+def build_hybrid_preprocessor(
+    text_col: str = TEXT_FEATURE,
+    num_cols: list[str] = NUMERICAL_FEATURES,
+    cat_cols: list[str] = CATEGORICAL_FEATURES,
+    max_text_features: int = 30000,
+) -> ColumnTransformer:
+    """Build a comprehensive ColumnTransformer combining TF-IDF word/char n-grams with scaled surface features."""
+    text_transformer = TfidfVectorizer(
+        max_features=max_text_features,
+        ngram_range=(1, 2),
+        min_df=2,
+        sublinear_tf=True,
+        strip_accents='unicode'
+    )
+
+    num_pipeline = Pipeline([
+        ('imputer', SimpleImputer(strategy='median')),
+        ('scaler', StandardScaler())
+    ])
+
+    cat_pipeline = Pipeline([
+        ('imputer', SimpleImputer(strategy='constant', fill_value='Unknown')),
+        ('onehot', OneHotEncoder(handle_unknown='ignore', sparse_output=False))
+    ])
+
+    return ColumnTransformer(
+        transformers=[
+            ('text', text_transformer, text_col),
+            ('num', num_pipeline, num_cols),
+            ('cat', cat_pipeline, cat_cols),
+        ]
+    )
+
+
 def extract_single_comment_features(
     text: str,
     time_of_day: str | None = None,
     feature_columns: list[str] | None = None,
 ) -> pd.DataFrame:
-    """Extract features for a single comment string for instant inference in dashboard/API."""
-    text_val = text or ''
+    """Extract full feature row for a single comment string for instant inference in dashboard/API."""
+    text_val = str(text or '')
     words = text_val.split()
     length = len(text_val)
     w_count = len(words)
     tod = time_of_day or get_current_time_category()
 
     row = {
+        'comment_text': text_val,
         'comment_length': float(length),
         'word_count': float(w_count),
         'uppercase_ratio': float(sum(1 for c in text_val if c.isupper()) / max(length + 1, 1)),
@@ -138,5 +178,7 @@ def extract_single_comment_features(
         'time_of_day': str(tod),
     }
 
-    cols = feature_columns or ALL_FEATURES
-    return pd.DataFrame([row], columns=cols)
+    cols = feature_columns or HYBRID_FEATURES
+    # Filter to only the requested feature columns if specified
+    filtered_row = {k: row[k] for k in cols if k in row}
+    return pd.DataFrame([filtered_row], columns=cols)

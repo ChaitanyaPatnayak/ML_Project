@@ -1,0 +1,3 @@
+Model,Accuracy,Precision,Recall,F1 (Toxic),Weighted F1,ROC-AUC,Features
+Surface-Only Random Forest (Baseline),0.5388,0.0946,0.5646,0.1621,0.6408,0.5801,9 Surface Numbers Only (No Words)
+Hybrid Text + Syntactic Classifier (Production),0.9118,0.45652173913043476,0.6113924050632912,0.5227272727272727,0.9175443527384912,0.8869585893154113,35k TF-IDF N-grams + 9 Surface Numbers + Time

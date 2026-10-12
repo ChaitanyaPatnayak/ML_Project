@@ -68,11 +68,37 @@ Using `GridSearchCV` on a stratified training partition (optimizing `f1` for the
 | **Accuracy** | 91.77% | 53.88% | -0.3789 | Active detection shift |
 | **Weighted F1** | 0.8820 | 0.6408 | -0.2413 | Class re-balancing |
 
-### Production Model Selection Rationale
-We select **Random Forest (Tuned)** as the primary production engine:
-- It eliminates the trivial "always predict 0" majority shortcut of unweighted models.
-- It catches **56.46% of all toxic comments** while providing better overall accuracy (53.88% vs 46.00%) and higher ROC-AUC (0.5801 vs 0.5768) compared to Bagging.
-- Its tree structure provides instant feature importance attribution for regulatory explainability.
+### Production Hybrid Model & Synchronized Decision Policy
+
+While the 10 Review 1 & 2 baseline models evaluated syntactic and surface dimensions, relying purely on 9 surface numbers renders models blind to actual vocabulary (treating aggressive profanity like *"Mind your fucking Language"* identically to benign remarks like *"Have some organic broccoli"*).
+
+To provide a production-grade inference engine, we trained a **Hybrid Text + Syntactic Pipeline** (`train_production_model.py`) that couples **35,000 TF-IDF word and character n-grams** with the 9 scaled surface features and temporal metadata under class-balanced loss.
+
+#### Baseline (Surface-Only) vs Production (Hybrid Text+Surface)
+
+| Metric | Surface-Only Random Forest (Baseline) | Hybrid Text + Syntactic (Production) | Measured Delta |
+| :--- | :---: | :---: | :---: |
+| **Accuracy** | 53.88% | **91.18%** | **+37.30%** |
+| **Toxic Precision** | 9.46% | **45.65%** | **+36.19%** |
+| **Toxic Recall** | 56.46% | **61.14%** | **+4.68%** |
+| **Toxic F1-Score** | 0.1621 | **0.5227** | **+0.3606 (3.2x gain)** |
+| **ROC-AUC** | 0.5801 | **0.8870** | **+0.3069 (Massive Jump)** |
+| **Features Used** | 9 surface numbers only | 35k TF-IDF n-grams + 9 surface features | Full text comprehension |
+
+#### Synchronized Moderation Decision Policy (`src/moderation_policy.py`)
+
+To eliminate contradictory UI states (such as declaring a 45% borderline comment "APPROVED" while simultaneously sending it to a review queue), all inference is governed by a **strict tri-tier decision policy**:
+
+1. **Tier 1 — Auto-Approved ($P(\text{Toxic}) < 0.30$)**:
+   - *Decision Action*: `APPROVED: SAFE TO PUBLISH`
+   - *Routing*: Published immediately without human review.
+2. **Tier 2 — Ambiguous / Borderline ($0.30 \le P(\text{Toxic}) < 0.70$)**:
+   - *Decision Action*: `HELD FOR REVIEW: BORDERLINE` (**NEVER APPROVED**)
+   - *Routing*: Escalated to secondary review (queued for human moderator or LLM adjudication).
+   - *Epistemic Ambiguity*: Marked with an ambiguity uncertainty score ($1 - 2|P - 0.50|$).
+3. **Tier 3 — Automated Quarantine ($P(\text{Toxic}) \ge 0.70$)**:
+   - *Decision Action*: `QUARANTINED: HIGH RISK`
+   - *Routing*: Automatically quarantined for violating safety guidelines.
 
 ---
 
