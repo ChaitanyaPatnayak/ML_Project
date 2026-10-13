@@ -1247,77 +1247,60 @@ elif navigation == "⚡ Prediction Playground":
 # 6. REPORTS & GOVERNANCE
 # ==========================================
 elif navigation == "📑 Reports & Governance":
-    st.title("📑 Reports & Academic Governance")
-    st.markdown("Downloadable verified CSV artifacts and complete Review 2 rubric compliance audit.")
+    st.title("📑 Reports & Data Exports")
+    st.markdown("Download verified CSV evaluation artifacts, metric comparisons, and model outputs.")
 
-    tab_csv, tab_rubric = st.tabs(["💾 Downloadable Artifacts", "✅ 23CSE301 Rubric Compliance"])
+    st.subheader("📥 Export Evaluated Datatables")
+    r_col1, r_col2 = st.columns(2)
 
-    with tab_csv:
-        st.subheader("📥 Export Evaluated Datatables")
-        r_col1, r_col2 = st.columns(2)
+    with r_col1:
+        if "surface_vs_hybrid" in reports and not reports["surface_vs_hybrid"].empty:
+            st.download_button(
+                label="📄 Download Baseline vs Production Comparison (CSV)",
+                data=reports["surface_vs_hybrid"].to_csv(index=False),
+                file_name="model_comparison_surface_vs_hybrid.csv",
+                mime="text/csv",
+                use_container_width=True,
+            )
+        if "classification" in reports and not reports["classification"].empty:
+            st.download_button(
+                label="📄 Download 10-Model Classification Comparison (CSV)",
+                data=reports["classification"].to_csv(index=False),
+                file_name="classification_10_models_comparison.csv",
+                mime="text/csv",
+                use_container_width=True,
+            )
+        if "tuning" in reports and not reports["tuning"].empty:
+            st.download_button(
+                label="📄 Download Hyperparameter Tuning Comparison (CSV)",
+                data=reports["tuning"].to_csv(index=False),
+                file_name="hyperparameter_tuning_results.csv",
+                mime="text/csv",
+                use_container_width=True,
+            )
 
-        with r_col1:
-            if "surface_vs_hybrid" in reports and not reports["surface_vs_hybrid"].empty:
-                st.download_button(
-                    label="📄 Download Baseline vs Production Comparison (CSV)",
-                    data=reports["surface_vs_hybrid"].to_csv(index=False),
-                    file_name="model_comparison_surface_vs_hybrid.csv",
-                    mime="text/csv",
-                    use_container_width=True,
-                )
-            if "classification" in reports and not reports["classification"].empty:
-                st.download_button(
-                    label="📄 Download 10-Model Classification Comparison (CSV)",
-                    data=reports["classification"].to_csv(index=False),
-                    file_name="classification_10_models_comparison.csv",
-                    mime="text/csv",
-                    use_container_width=True,
-                )
-            if "tuning" in reports and not reports["tuning"].empty:
-                st.download_button(
-                    label="📄 Download Hyperparameter Tuning Comparison (CSV)",
-                    data=reports["tuning"].to_csv(index=False),
-                    file_name="hyperparameter_tuning_results.csv",
-                    mime="text/csv",
-                    use_container_width=True,
-                )
-
-        with r_col2:
-            if "clustering" in reports and not reports["clustering"].empty:
-                st.download_button(
-                    label="📄 Download Clustering Metrics Table (CSV)",
-                    data=reports["clustering"].to_csv(index=False),
-                    file_name="clustering_metrics_comparison.csv",
-                    mime="text/csv",
-                    use_container_width=True,
-                )
-            if "linkage" in reports and not reports["linkage"].empty:
-                st.download_button(
-                    label="📄 Download Hierarchical Linkage Comparison (CSV)",
-                    data=reports["linkage"].to_csv(index=False),
-                    file_name="hierarchical_linkage_comparison.csv",
-                    mime="text/csv",
-                    use_container_width=True,
-                )
-
-    with tab_rubric:
-        st.subheader("📋 23CSE301 Capstone Review 2 Rubric Checklist")
-        st.markdown(
-            """
-        | Component | Criteria | Status | Verified Outcome |
-        | :--- | :--- | :---: | :--- |
-        | **Classification Part B (6 Marks)** | 5 Required Part B Models (RF, AdaBoost, GBDT, Bagging, MLP) | ✅ Complete | All 5 trained on identical 80/20 stratified split |
-        | | 10-Model Consolidated Comparison Table | ✅ Complete | Single table with Accuracy, Precision, Recall, Toxic F1, Weighted F1, ROC-AUC |
-        | | Cross-Validation & Hyperparameter Tuning | ✅ Complete | 5-fold CV & GridSearchCV with measured metric gains |
-        | | Production Hybrid Pipeline | ✅ Complete | Upgraded to 35k TF-IDF n-grams + surface features (ROC-AUC: 0.8870, F1: 0.5227) |
-        | **Clustering Track (8 Marks)** | K-Means with Elbow Curve & Inertia | ✅ Complete | Inertia evaluated for $k=2..10$, elbow justified at $k=5$ |
-        | | Agglomerative Hierarchical Clustering | ✅ Complete | Ward, Complete, and Average linkages compared with dendrograms |
-        | | Mandatory Metrics (Silhouette, DB, CH) | ✅ Complete | All 3 reported for both algorithms and 3 linkage types |
-        | | Visualizations (PCA & t-SNE) | ✅ Complete | 2D PCA for both algorithms + 2D t-SNE manifold for K-Means |
-        | | No Ground-Truth Labels During Fitting | ✅ Complete | Labels strictly excluded from clustering feature matrix |
-        | **Pipeline Integration (3 Marks)** | Leakage-Free Preprocessing | ✅ Complete | ColumnTransformer fit strictly on training splits |
-        | | Preserved Review 1 Regression Track | ✅ Complete | All 10 regression models preserved and verified |
-        | | Synchronized Moderation Policy | ✅ Complete | Unit-tested policy enforcing mutual exclusivity across routing tiers |
-        | **UI & Application (Bonus)** | Responsive Streamlit Application | ✅ Complete | Deep midnight theme with synchronized triage decisions |
-        """
-        )
+    with r_col2:
+        if "clustering" in reports and not reports["clustering"].empty:
+            st.download_button(
+                label="📄 Download Clustering Metrics Table (CSV)",
+                data=reports["clustering"].to_csv(index=False),
+                file_name="clustering_metrics_comparison.csv",
+                mime="text/csv",
+                use_container_width=True,
+            )
+        if "linkage" in reports and not reports["linkage"].empty:
+            st.download_button(
+                label="📄 Download Hierarchical Linkage Comparison (CSV)",
+                data=reports["linkage"].to_csv(index=False),
+                file_name="hierarchical_linkage_comparison.csv",
+                mime="text/csv",
+                use_container_width=True,
+            )
+        if "roc_curves" in reports and not reports["roc_curves"].empty:
+            st.download_button(
+                label="📄 Download ROC-AUC Coordinates Data (CSV)",
+                data=reports["roc_curves"].to_csv(index=False),
+                file_name="roc_curves_data.csv",
+                mime="text/csv",
+                use_container_width=True,
+            )
