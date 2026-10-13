@@ -1,8 +1,8 @@
 # AI Sentinel: Real-Time Content Moderator
 ### 23CSE301 Machine Learning Capstone Project — Review 2 Submission
 **Authors / Contributors:**
-- **Chaitanya** ([@ChaitanyaPatnayak](https://github.com/ChaitanyaPatnayak)) 
-- **Sai Krishna** ([@saikrishna10052007](https://github.com/saikrishna10052007)) 
+- **Chaitanya** ([@ChaitanyaPatnayak](https://github.com/ChaitanyaPatnayak))
+- **Sai Krishna** ([@saikrishna10052007](https://github.com/saikrishna10052007))
 - **Towfeeq Rameez** ([@TowfeeqRameez](https://github.com/TowfeeqRameez))
 
 ---

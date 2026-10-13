@@ -276,9 +276,9 @@ with st.sidebar:
 
     st.divider()
     st.markdown("**Authors & Contributors**")
-    st.markdown("• **Chaitanya** (Lead ML Engineer)")
-    st.markdown("• **Sai Krishna** (Data Scientist)")
-    st.markdown("• **Towfeeq Rameez** (Research & Evaluation)")
+    st.markdown("• **Chaitanya**")
+    st.markdown("• **Sai Krishna**")
+    st.markdown("• **Towfeeq Rameez**")
     st.divider()
     st.caption("Scikit-Learn 1.8 | Streamlit | Plotly")
 
