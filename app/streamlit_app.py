@@ -188,6 +188,7 @@ def load_reports() -> dict[str, pd.DataFrame]:
         "tuning": reports_dir / "tuning_comparison.csv",
         "delta": reports_dir / "tuning_delta.csv",
         "surface_vs_hybrid": reports_dir / "model_comparison_surface_vs_hybrid.csv",
+        "rubric_10_models": reports_dir / "rubric_10_models_comparison.csv",
         "clustering": reports_dir / "clustering_metrics.csv",
         "linkage": reports_dir / "linkage_comparison.csv",
         "kmeans_profile": reports_dir / "kmeans_cluster_profile.csv",
@@ -217,8 +218,37 @@ def load_trained_model():
     return None
 
 
+@st.cache_resource
+def load_all_models_registry():
+    reg_path = ROOT_DIR / "models" / "classifiers_registry.joblib"
+    if reg_path.exists():
+        try:
+            return joblib.load(reg_path)
+        except Exception:
+            pass
+    return {}
+
+
+@st.cache_resource
+def load_model_payload(model_key: str):
+    if model_key == "🏆 Production Hybrid Model (TF-IDF + Syntactic)":
+        p = ROOT_DIR / "models" / "final_classifier.joblib"
+        if p.exists():
+            return joblib.load(p)
+    reg = load_all_models_registry()
+    if model_key in reg:
+        p = ROOT_DIR / reg[model_key]["artifact_path"]
+        if p.exists():
+            return joblib.load(p)
+    fallback_p = ROOT_DIR / "models" / "final_classifier.joblib"
+    if fallback_p.exists():
+        return joblib.load(fallback_p)
+    return None
+
+
 reports = load_reports()
 model_artifact = load_trained_model()
+models_registry = load_all_models_registry()
 policy = ModerationPolicy(threshold_approve=0.30, threshold_quarantine=0.70, classification_threshold=0.50)
 
 # Sidebar Navigation & Meta
@@ -738,97 +768,220 @@ elif navigation == "🔍 Dataset Explorer":
 
 
 # ==========================================
-# 5. PREDICTION PLAYGROUND
+# 5. PREDICTION PLAYGROUND — MULTI-ALGORITHM
 # ==========================================
 elif navigation == "⚡ Prediction Playground":
-    st.title("⚡ Prediction Playground — Production Inference")
-    st.markdown("Live toxicity evaluation powered by the trained, class-balanced production pipeline and synchronized decision policy.")
+    st.title("⚡ Prediction Playground — Multi-Algorithm Lab")
+    st.markdown(
+        "Interactive toxicity evaluation laboratory featuring all **10 Capstone Rubric Classification Algorithms** "
+        "plus the **Production Hybrid Pipeline**."
+    )
 
-    if not model_artifact:
-        st.error("No model artifact found at models/final_classifier.joblib. Run train_production_model.py first.")
-    else:
-        pipeline = model_artifact["pipeline"]
-        model_name = model_artifact.get("model_name", "Production Classifier")
-        feature_cols = model_artifact.get("feature_columns", ALL_FEATURES)
+    # 1. Model Selection Dropdown
+    algo_catalog = {
+        # Classification Part A
+        "Logistic Regression": {
+            "track": "Part A (Review 1)",
+            "supports_proba": True,
+            "desc": "Linear log-odds classifier with L2 regularization.",
+        },
+        "K-Nearest Neighbors (KNN)": {
+            "track": "Part A (Review 1)",
+            "supports_proba": True,
+            "desc": "Non-parametric instance classifier (k=5 nearest Euclidean neighbors).",
+        },
+        "Gaussian Naive Bayes": {
+            "track": "Part A (Review 1)",
+            "supports_proba": True,
+            "desc": "Probabilistic Bayesian classifier with Gaussian feature likelihoods.",
+        },
+        "Decision Tree Classifier": {
+            "track": "Part A (Review 1)",
+            "supports_proba": True,
+            "desc": "Recursive binary partition tree minimizing Gini impurity (max depth 6).",
+        },
+        "Support Vector Classifier (SVC)": {
+            "track": "Part A (Review 1)",
+            "supports_proba": False,
+            "desc": "Linear maximal-margin separating hyperplane. Outputs geometric margin distance.",
+        },
+        # Classification Part B
+        "Random Forest Classifier": {
+            "track": "Part B (Review 2)",
+            "supports_proba": True,
+            "desc": "Ensemble of 120 decorrelated decision trees with balanced bootstrap sampling.",
+        },
+        "AdaBoost Classifier": {
+            "track": "Part B (Review 2)",
+            "supports_proba": True,
+            "desc": "Adaptive boosting ensemble adjusting sample weights sequentially.",
+        },
+        "Gradient Boosting Classifier": {
+            "track": "Part B (Review 2)",
+            "supports_proba": True,
+            "desc": "Stage-wise additive decision trees minimizing deviance via gradient descent.",
+        },
+        "Bagging (Decision Tree)": {
+            "track": "Part B (Review 2)",
+            "supports_proba": True,
+            "desc": "Bootstrap aggregating ensemble of 60 balanced depth-6 decision trees.",
+        },
+        "MLP Classifier (Neural Network)": {
+            "track": "Part B (Review 2)",
+            "supports_proba": True,
+            "desc": "Multi-layer perceptron neural network (64, 32 units) with ReLU activations.",
+        },
+        # Production
+        "🏆 Production Hybrid Model (TF-IDF + Syntactic)": {
+            "track": "Production Engine",
+            "supports_proba": True,
+            "desc": "35k TF-IDF word/char n-grams + 9 surface features under class-balanced loss.",
+        },
+    }
 
-        # Policy configuration expander
-        with st.expander("⚙️ Decision Threshold Policy & Model Metadata", expanded=False):
-            st.markdown(f"**Loaded Model:** `{model_name}`")
-            st.markdown(f"**Feature Dimensions:** `{len(feature_cols)} input columns` (text + 9 surface features + time_of_day)")
-            st.markdown(
-                r"""
-            - **Auto-Approve Threshold ($\tau_{\text{approve}}$):** `30.0%` (Only comments with $P(\text{Toxic}) < 30\%$ are auto-approved)
-            - **Classification Cutoff:** `50.0%` ($P \ge 50\%$ maps to binary class 1)
-            - **Auto-Quarantine Threshold ($\tau_{\text{quarantine}}$):** `70.0%` (Comments with $P(\text{Toxic}) \ge 70\%$ are quarantined)
-            - **Borderline Ambiguity Window:** `[30.0%, 70.0%)` (Strictly held for secondary review; **NEVER APPROVED**)
-            """
-            )
-
-        # Presets including bug reproduction and edge cases
-        presets = {
-            "Select an example...": "",
-            "Borderline Admonition (Bug Case)": "Mind your fucking Language",
-            "Severe Hostile Attack": "Shut your ugly mouth you disgusting pig and get lost.",
-            "Civil Disagreement": "I respectfully disagree with your conclusion regarding tax policy, though your point on tariffs is well argued.",
-            "Benign Shouting (High Caps)": "CONGRATULATIONS ON PASSING YOUR EXAMS BROTHER I AM SO PROUD OF YOU!!!!",
-            "Colloquial / Enthusiastic Profanity": "Holy shit I cannot believe that actually worked",
-            "Neutral Observation": "The weather today has been unusually calm for mid-October.",
-        }
-
-        col_preset, col_tod = st.columns([3, 1])
-        with col_preset:
-            selected_preset = st.selectbox("Quick Benchmark Presets:", list(presets.keys()))
-        with col_tod:
-            selected_tod = st.selectbox(
-                "Time of Day:",
-                ["Morning", "Afternoon", "Evening", "Night", "Unknown"],
-                index=["Morning", "Afternoon", "Evening", "Night", "Unknown"].index(get_current_time_category()),
-            )
-
-        default_text = presets[selected_preset] if selected_preset != "Select an example..." else ""
-        comment_input = st.text_area(
-            "Enter Comment Text for Moderation:",
-            value=default_text,
-            height=130,
-            placeholder="Type or paste any online comment here...",
+    col_algo_sel, col_mode_sel = st.columns([3, 1])
+    with col_algo_sel:
+        selected_algo = st.selectbox(
+            "🤖 Select Classification Algorithm:",
+            options=list(algo_catalog.keys()),
+            index=0,
+            help="Select any of the 10 rubric-mandated algorithms to execute live inference with its actual trained model.",
+        )
+    with col_mode_sel:
+        compare_all_mode = st.checkbox(
+            "⚡ Compare All 10 Models",
+            value=False,
+            help="Run this comment through all 10 algorithms simultaneously and display a side-by-side comparison.",
         )
 
-        if st.button("🛡️ Run Synchronized Moderation Triage", type="primary", use_container_width=True):
-            if not comment_input.strip():
-                st.warning("Please enter valid comment text before running triage.")
-            else:
-                # 1. Feature Extraction
-                df_single = extract_single_comment_features(comment_input, selected_tod, feature_cols)
+    # Active Algorithm Information Card
+    algo_meta = algo_catalog[selected_algo]
+    track_badge_class = (
+        "badge-violet" if "Part A" in algo_meta["track"]
+        else "badge-cyan" if "Part B" in algo_meta["track"]
+        else "badge-emerald"
+    )
 
-                # 2. Timed Evaluation through ModerationPolicy
+    st.markdown(
+        f"""
+    <div style="background: #131B2E; border: 1px solid rgba(139, 92, 246, 0.25); border-radius: 12px; padding: 14px 18px; margin-bottom: 16px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+            <div>
+                <span class="badge {track_badge_class}">{algo_meta["track"]}</span>
+                <b style="color: #F8FAFC; font-size: 1.05rem;">{selected_algo}</b>
+                <span style="color: #94A3B8; font-size: 0.9rem; margin-left: 10px;">— {algo_meta["desc"]}</span>
+            </div>
+            <div style="font-size: 0.82rem; color: #38BDF8; font-family: 'JetBrains Mono', monospace;">
+                Output: {"Calibrated Probability P(Toxic)" if algo_meta["supports_proba"] else "Decision Margin Score (Hyperplane Distance)"}
+            </div>
+        </div>
+    </div>
+    """,
+        unsafe_allow_html=True,
+    )
+
+    # Policy threshold expander
+    with st.expander("⚙️ Decision Threshold Policy & Policy Invariants", expanded=False):
+        st.markdown(
+            r"""
+        - **Auto-Approve Threshold ($\tau_{\text{approve}}$):** `30.0%` (Only comments with $P(\text{Toxic}) < 30\%$ are auto-approved)
+        - **Classification Cutoff:** `50.0%` ($P \ge 50\%$ maps to binary class 1)
+        - **Auto-Quarantine Threshold ($\tau_{\text{quarantine}}$):** `70.0%` (Comments with $P(\text{Toxic}) \ge 70\%$ are quarantined)
+        - **Borderline Ambiguity Window:** `[30.0%, 70.0%)` (Strictly held for secondary review; **NEVER APPROVED**)
+        - **Non-Probability Classifiers (e.g. Linear SVC):** Evaluated against margin distance thresholds ($\text{Margin} < -0.20 \to \text{Approved}$, $[-0.20, +0.20] \to \text{Held for Review}$, $> +0.20 \to \text{Quarantined}$).
+        """
+        )
+
+    # Benchmark presets
+    presets = {
+        "Select an example...": "",
+        "Borderline Admonition (Bug Case)": "Mind your fucking Language",
+        "Severe Hostile Attack": "Shut your ugly mouth you disgusting pig and get lost.",
+        "Civil Disagreement": "I respectfully disagree with your conclusion regarding tax policy, though your point on tariffs is well argued.",
+        "Benign Shouting (High Caps)": "CONGRATULATIONS ON PASSING YOUR EXAMS BROTHER I AM SO PROUD OF YOU!!!!",
+        "Colloquial / Enthusiastic Profanity": "Holy shit I cannot believe that actually worked",
+        "Neutral Observation": "The weather today has been unusually calm for mid-October.",
+    }
+
+    col_preset, col_tod = st.columns([3, 1])
+    with col_preset:
+        selected_preset = st.selectbox("Quick Benchmark Presets:", list(presets.keys()))
+    with col_tod:
+        selected_tod = st.selectbox(
+            "Time of Day:",
+            ["Morning", "Afternoon", "Evening", "Night", "Unknown"],
+            index=["Morning", "Afternoon", "Evening", "Night", "Unknown"].index(get_current_time_category()),
+        )
+
+    default_text = presets[selected_preset] if selected_preset != "Select an example..." else ""
+    comment_input = st.text_area(
+        "Enter Comment Text for Moderation:",
+        value=default_text,
+        height=125,
+        placeholder="Type or paste any online comment here...",
+    )
+
+    btn_label = "⚡ Run Multi-Model Comparison" if compare_all_mode else f"🛡️ Run Moderation with {selected_algo}"
+    if st.button(btn_label, type="primary", use_container_width=True):
+        if not comment_input.strip():
+            st.warning("Please enter valid comment text before running moderation.")
+        else:
+            # Load selected model payload
+            selected_payload = load_model_payload(selected_algo)
+
+            if not selected_payload:
+                st.error(f"Could not load artifact for {selected_algo}. Please check models directory.")
+            else:
+                active_pipeline = selected_payload["pipeline"]
+                active_cols = selected_payload.get("feature_columns", ALL_FEATURES)
+                df_single = extract_single_comment_features(comment_input, selected_tod, active_cols)
+
+                # Execute timed inference with selected model
                 t_start = time.perf_counter()
-                decision = policy.evaluate(pipeline, df_single, comment_input)
+                decision = policy.evaluate(
+                    pipeline=active_pipeline,
+                    features_df=df_single,
+                    raw_text=comment_input,
+                    algorithm_name=selected_algo,
+                    algorithm_track=algo_meta["track"],
+                )
                 latency_ms = (time.perf_counter() - t_start) * 1000.0
 
-                st.subheader("🔍 Evaluated Moderation Decision")
+                st.subheader(f"🔍 Moderation Decision — {selected_algo}")
 
-                # Metrics overview row
+                # Metric KPI Row
                 m_col1, m_col2, m_col3, m_col4 = st.columns(4)
                 with m_col1:
-                    st.metric("Toxic Probability P(Toxic)", f"{decision.toxic_probability:.1%}")
+                    if decision.supports_probability and decision.toxic_probability is not None:
+                        st.metric("Toxic Probability P(Toxic)", f"{decision.toxic_probability:.1%}")
+                    else:
+                        st.metric("Decision Margin Score", f"{decision.decision_score:+.3f}")
                 with m_col2:
-                    st.metric("Civil Probability P(Civil)", f"{decision.civil_probability:.1%}")
+                    if decision.supports_probability and decision.civil_probability is not None:
+                        st.metric("Civil Probability P(Civil)", f"{decision.civil_probability:.1%}")
+                    else:
+                        st.metric("Boundary Cutoff", "0.000 (Hyperplane)")
                 with m_col3:
-                    st.metric("Binary Class (Cutoff=50%)", f"{decision.predicted_class} ({decision.predicted_label})")
+                    st.metric("Binary Class", f"{decision.predicted_class} ({decision.predicted_label})")
                 with m_col4:
-                    st.metric("Measured Latency", f"{latency_ms:.2f} ms")
+                    st.metric("Inference Latency", f"{latency_ms:.2f} ms")
 
                 res_col1, res_col2 = st.columns([2, 3])
 
                 with res_col1:
-                    # Action banner strictly synchronized with routing tier
+                    score_label = (
+                        f"{decision.toxic_probability:.1%} P(Toxic)"
+                        if (decision.supports_probability and decision.toxic_probability is not None)
+                        else f"Margin: {decision.decision_score:+.3f}"
+                    )
+
                     if decision.decision_action == "APPROVED":
                         st.markdown(
                             f"""
                         <div class="pred-box pred-box-safe">
                             <h3 style="color: #34D399; margin: 0;">✅ APPROVED: SAFE</h3>
-                            <p style="color: #94A3B8; margin: 6px 0 0 0;">Comment risk is below auto-approval cutoff (30%).</p>
-                            <h2 style="color: #10B981; margin: 12px 0 0 0;">{decision.toxic_probability:.1%} P(Toxic)</h2>
+                            <p style="color: #94A3B8; margin: 6px 0 0 0;">Comment cleared safety cutoff for this model.</p>
+                            <h2 style="color: #10B981; margin: 12px 0 0 0;">{score_label}</h2>
                         </div>
                         """,
                             unsafe_allow_html=True,
@@ -838,8 +991,8 @@ elif navigation == "⚡ Prediction Playground":
                             f"""
                         <div class="pred-box pred-box-warning">
                             <h3 style="color: #FBBF24; margin: 0;">🟡 HELD FOR REVIEW</h3>
-                            <p style="color: #94A3B8; margin: 6px 0 0 0;">Borderline ambiguity window [30%, 70%). NOT approved.</p>
-                            <h2 style="color: #F59E0B; margin: 12px 0 0 0;">{decision.toxic_probability:.1%} P(Toxic)</h2>
+                            <p style="color: #94A3B8; margin: 6px 0 0 0;">Ambiguous / Borderline. Escalated to human review.</p>
+                            <h2 style="color: #F59E0B; margin: 12px 0 0 0;">{score_label}</h2>
                         </div>
                         """,
                             unsafe_allow_html=True,
@@ -849,8 +1002,8 @@ elif navigation == "⚡ Prediction Playground":
                             f"""
                         <div class="pred-box pred-box-toxic">
                             <h3 style="color: #FB7185; margin: 0;">🔴 QUARANTINED</h3>
-                            <p style="color: #94A3B8; margin: 6px 0 0 0;">High toxicity confidence exceeds quarantine threshold (70%).</p>
-                            <h2 style="color: #F43F5E; margin: 12px 0 0 0;">{decision.toxic_probability:.1%} P(Toxic)</h2>
+                            <p style="color: #94A3B8; margin: 6px 0 0 0;">Flagged for safety violation by {selected_algo}.</p>
+                            <h2 style="color: #F43F5E; margin: 12px 0 0 0;">{score_label}</h2>
                         </div>
                         """,
                             unsafe_allow_html=True,
@@ -859,19 +1012,76 @@ elif navigation == "⚡ Prediction Playground":
                 with res_col2:
                     st.markdown("#### Operational Routing Action")
                     if decision.decision_action == "APPROVED":
-                        st.success(f"🟢 **{decision.routing_tier}**: Safe to publish immediately without review.")
+                        st.success(f"🟢 **{decision.routing_tier}**: {decision.explanation}")
                     elif decision.decision_action == "HELD FOR REVIEW":
-                        st.warning(
-                            f"🟡 **{decision.routing_tier}**: {decision.explanation}"
-                        )
+                        st.warning(f"🟡 **{decision.routing_tier}**: {decision.explanation}")
                     else:
                         st.error(f"🔴 **{decision.routing_tier}**: {decision.explanation}")
 
-                    st.markdown(f"**Epistemic Ambiguity Score:** `{decision.uncertainty_score:.2f}` (1.0 = maximum ambiguity near 50%, 0.0 = decisive)")
+                    st.markdown(
+                        f"**Epistemic Ambiguity Score:** `{decision.uncertainty_score:.2f}` "
+                        "(1.0 = maximum ambiguity near decision boundary, 0.0 = decisive)"
+                    )
+                    if not decision.supports_probability:
+                        st.caption(
+                            "ℹ️ *Note on Linear SVC*: Computes geometric margin distance $w^T x + b$. "
+                            "Platt probability scaling was disabled during training to preserve strict maximal-margin optimization."
+                        )
 
+                # Feature Vector Display
                 st.markdown("#### Extracted Surface Feature Vector")
                 feat_display = df_single.drop(columns=["comment_text"], errors="ignore").T
                 st.dataframe(feat_display.rename(columns={0: "Feature Value"}), use_container_width=True)
+
+                # ==========================================
+                # SIDE-BY-SIDE 10-MODEL COMPARISON MODE
+                # ==========================================
+                if compare_all_mode:
+                    st.markdown("---")
+                    st.subheader("⚡ 10-Model Live Comparative Benchmark")
+                    st.caption("Direct side-by-side comparison of every algorithm on this exact comment input.")
+
+                    comparison_rows = []
+                    for name in algo_catalog:
+                        m_payload = load_model_payload(name)
+                        if m_payload:
+                            m_cols = m_payload.get("feature_columns", ALL_FEATURES)
+                            m_single = extract_single_comment_features(comment_input, selected_tod, m_cols)
+                            m_t0 = time.perf_counter()
+                            m_dec = policy.evaluate(
+                                pipeline=m_payload["pipeline"],
+                                features_df=m_single,
+                                raw_text=comment_input,
+                                algorithm_name=name,
+                                algorithm_track=algo_catalog[name]["track"],
+                            )
+                            m_lat = (time.perf_counter() - m_t0) * 1000.0
+
+                            score_str = (
+                                f"{m_dec.toxic_probability:.1%}"
+                                if (m_dec.supports_probability and m_dec.toxic_probability is not None)
+                                else f"Margin: {m_dec.decision_score:+.2f}"
+                            )
+
+                            action_icon = (
+                                "✅ Approved" if m_dec.decision_action == "APPROVED"
+                                else "🟡 Review" if m_dec.decision_action == "HELD FOR REVIEW"
+                                else "🔴 Quarantined"
+                            )
+
+                            comparison_rows.append({
+                                "Algorithm": name,
+                                "Track": algo_catalog[name]["track"],
+                                "Decision Action": action_icon,
+                                "Predicted Class": f"Class {m_dec.predicted_class} ({m_dec.predicted_label})",
+                                "Toxic Score / Margin": score_str,
+                                "Latency (ms)": f"{m_lat:.2f} ms",
+                                "Ambiguity": f"{m_dec.uncertainty_score:.2f}",
+                            })
+
+                    df_comp_table = pd.DataFrame(comparison_rows)
+                    st.dataframe(df_comp_table, use_container_width=True)
+                    st.caption("Notice how different algorithms express varying sensitivity and trade-offs on the same input.")
 
 
 # ==========================================
