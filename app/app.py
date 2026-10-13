@@ -193,6 +193,7 @@ def load_reports() -> dict[str, pd.DataFrame]:
         "linkage": reports_dir / "linkage_comparison.csv",
         "kmeans_profile": reports_dir / "kmeans_cluster_profile.csv",
         "ward_profile": reports_dir / "ward_cluster_profile.csv",
+        "roc_curves": reports_dir / "roc_curves_data.csv",
     }
     loaded = {}
     for key, path in files.items():
@@ -521,6 +522,63 @@ elif navigation == "🧪 Classification Lab":
         )
         dark_plotly_layout(fig_bar, "Model Performance Across Key Evaluated Metrics", height=450)
         st.plotly_chart(fig_bar, use_container_width=True)
+
+        st.markdown("---")
+
+        # Interactive ROC-AUC Curves Section
+        st.subheader("📈 Receiver Operating Characteristic (ROC) & Area Under Curve (AUC)")
+        st.caption("Interactive trade-off curves: True Positive Rate (Sensitivity / Recall) vs False Positive Rate across all continuous classification thresholds.")
+
+        if "roc_curves" in reports and not reports["roc_curves"].empty:
+            df_roc = reports["roc_curves"].copy()
+            all_roc_models = list(df_roc["Model"].unique())
+            default_roc = [
+                "Production Hybrid Model",
+                "Bagging (Decision Tree)",
+                "Random Forest Classifier",
+                "Gradient Boosting Classifier",
+                "Support Vector Classifier (SVC)",
+            ]
+            selected_roc_models = st.multiselect(
+                "🎯 Select Models to Overlay on ROC Curve:",
+                options=all_roc_models,
+                default=[m for m in default_roc if m in all_roc_models],
+                help="Toggle classifiers to compare their ROC curves and Area Under Curve (AUC) metrics."
+            )
+
+            if selected_roc_models:
+                df_roc_filtered = df_roc[df_roc["Model"].isin(selected_roc_models)].copy()
+                model_auc_map = df_roc_filtered.groupby("Model")["ROC_AUC"].first().to_dict()
+                df_roc_filtered["Model_Legend"] = df_roc_filtered["Model"].apply(
+                    lambda m: f"{m} (AUC = {model_auc_map.get(m, 0.0):.3f})"
+                )
+
+                fig_roc = px.line(
+                    df_roc_filtered,
+                    x="FPR",
+                    y="TPR",
+                    color="Model_Legend",
+                    labels={
+                        "FPR": "False Positive Rate (1 - Specificity)",
+                        "TPR": "True Positive Rate (Sensitivity / Recall)",
+                        "Model_Legend": "Model (AUC Score)",
+                    },
+                    color_discrete_sequence=["#10B981", "#8B5CF6", "#06B6D4", "#F59E0B", "#F43F5E", "#38BDF8", "#EC4899", "#EAB308"],
+                )
+                fig_roc.add_shape(
+                    type="line", line=dict(dash="dash", color="#64748B", width=1.5),
+                    x0=0, y0=0, x1=1, y1=1
+                )
+                dark_plotly_layout(fig_roc, "Interactive ROC-AUC Curves Across Evaluated Classifiers", height=480)
+                fig_roc.update_xaxes(range=[-0.01, 1.01])
+                fig_roc.update_yaxes(range=[-0.01, 1.01])
+                st.plotly_chart(fig_roc, use_container_width=True)
+
+                best_auc_m = max(model_auc_map, key=model_auc_map.get)
+                st.info(
+                    f"🏆 **Highest Discriminative Ability**: `{best_auc_m}` achieves an **AUC of {model_auc_map[best_auc_m]:.4f}**, "
+                    "demonstrating strong capability to rank toxic content above civil comments across all threshold operating points."
+                )
 
         st.markdown("---")
 

@@ -1,0 +1,1112 @@
+Model,FPR,TPR,ROC_AUC,Track
+Logistic Regression,0.0,0.0,0.5591,Part A
+Logistic Regression,0.01,0.0228,0.5591,Part A
+Logistic Regression,0.02,0.0367,0.5591,Part A
+Logistic Regression,0.03,0.043,0.5591,Part A
+Logistic Regression,0.04,0.0532,0.5591,Part A
+Logistic Regression,0.05,0.0722,0.5591,Part A
+Logistic Regression,0.06,0.0823,0.5591,Part A
+Logistic Regression,0.07,0.0911,0.5591,Part A
+Logistic Regression,0.08,0.1013,0.5591,Part A
+Logistic Regression,0.09,0.1165,0.5591,Part A
+Logistic Regression,0.1,0.1278,0.5591,Part A
+Logistic Regression,0.11,0.1405,0.5591,Part A
+Logistic Regression,0.12,0.1544,0.5591,Part A
+Logistic Regression,0.13,0.1646,0.5591,Part A
+Logistic Regression,0.14,0.1772,0.5591,Part A
+Logistic Regression,0.15,0.1924,0.5591,Part A
+Logistic Regression,0.16,0.2076,0.5591,Part A
+Logistic Regression,0.17,0.2177,0.5591,Part A
+Logistic Regression,0.18,0.2278,0.5591,Part A
+Logistic Regression,0.19,0.238,0.5591,Part A
+Logistic Regression,0.2,0.2506,0.5591,Part A
+Logistic Regression,0.21,0.2658,0.5591,Part A
+Logistic Regression,0.22,0.2848,0.5591,Part A
+Logistic Regression,0.23,0.2924,0.5591,Part A
+Logistic Regression,0.24,0.2962,0.5591,Part A
+Logistic Regression,0.25,0.3038,0.5591,Part A
+Logistic Regression,0.26,0.3139,0.5591,Part A
+Logistic Regression,0.27,0.3253,0.5591,Part A
+Logistic Regression,0.28,0.3443,0.5591,Part A
+Logistic Regression,0.29,0.357,0.5591,Part A
+Logistic Regression,0.3,0.3696,0.5591,Part A
+Logistic Regression,0.31,0.3797,0.5591,Part A
+Logistic Regression,0.32,0.3899,0.5591,Part A
+Logistic Regression,0.33,0.4,0.5591,Part A
+Logistic Regression,0.34,0.4152,0.5591,Part A
+Logistic Regression,0.35,0.419,0.5591,Part A
+Logistic Regression,0.36,0.4304,0.5591,Part A
+Logistic Regression,0.37,0.4354,0.5591,Part A
+Logistic Regression,0.38,0.4418,0.5591,Part A
+Logistic Regression,0.39,0.4544,0.5591,Part A
+Logistic Regression,0.4,0.4684,0.5591,Part A
+Logistic Regression,0.41,0.4759,0.5591,Part A
+Logistic Regression,0.42,0.4873,0.5591,Part A
+Logistic Regression,0.43,0.5038,0.5591,Part A
+Logistic Regression,0.44,0.5114,0.5591,Part A
+Logistic Regression,0.45,0.5241,0.5591,Part A
+Logistic Regression,0.46,0.5329,0.5591,Part A
+Logistic Regression,0.47,0.5468,0.5591,Part A
+Logistic Regression,0.48,0.5595,0.5591,Part A
+Logistic Regression,0.49,0.5684,0.5591,Part A
+Logistic Regression,0.5,0.5785,0.5591,Part A
+Logistic Regression,0.51,0.5873,0.5591,Part A
+Logistic Regression,0.52,0.5937,0.5591,Part A
+Logistic Regression,0.53,0.6063,0.5591,Part A
+Logistic Regression,0.54,0.619,0.5591,Part A
+Logistic Regression,0.55,0.6342,0.5591,Part A
+Logistic Regression,0.56,0.6443,0.5591,Part A
+Logistic Regression,0.57,0.6544,0.5591,Part A
+Logistic Regression,0.58,0.6658,0.5591,Part A
+Logistic Regression,0.59,0.6772,0.5591,Part A
+Logistic Regression,0.6,0.6911,0.5591,Part A
+Logistic Regression,0.61,0.7063,0.5591,Part A
+Logistic Regression,0.62,0.719,0.5591,Part A
+Logistic Regression,0.63,0.7304,0.5591,Part A
+Logistic Regression,0.64,0.7418,0.5591,Part A
+Logistic Regression,0.65,0.7506,0.5591,Part A
+Logistic Regression,0.66,0.7608,0.5591,Part A
+Logistic Regression,0.67,0.7722,0.5591,Part A
+Logistic Regression,0.68,0.7772,0.5591,Part A
+Logistic Regression,0.69,0.7823,0.5591,Part A
+Logistic Regression,0.7,0.7911,0.5591,Part A
+Logistic Regression,0.71,0.7975,0.5591,Part A
+Logistic Regression,0.72,0.8038,0.5591,Part A
+Logistic Regression,0.73,0.8139,0.5591,Part A
+Logistic Regression,0.74,0.8241,0.5591,Part A
+Logistic Regression,0.75,0.8329,0.5591,Part A
+Logistic Regression,0.76,0.8392,0.5591,Part A
+Logistic Regression,0.77,0.8494,0.5591,Part A
+Logistic Regression,0.78,0.8544,0.5591,Part A
+Logistic Regression,0.79,0.857,0.5591,Part A
+Logistic Regression,0.8,0.8658,0.5591,Part A
+Logistic Regression,0.81,0.8722,0.5591,Part A
+Logistic Regression,0.82,0.8797,0.5591,Part A
+Logistic Regression,0.83,0.8873,0.5591,Part A
+Logistic Regression,0.84,0.8937,0.5591,Part A
+Logistic Regression,0.85,0.9038,0.5591,Part A
+Logistic Regression,0.86,0.9101,0.5591,Part A
+Logistic Regression,0.87,0.9203,0.5591,Part A
+Logistic Regression,0.88,0.9278,0.5591,Part A
+Logistic Regression,0.89,0.9342,0.5591,Part A
+Logistic Regression,0.9,0.9354,0.5591,Part A
+Logistic Regression,0.91,0.943,0.5591,Part A
+Logistic Regression,0.92,0.9506,0.5591,Part A
+Logistic Regression,0.93,0.9544,0.5591,Part A
+Logistic Regression,0.94,0.9608,0.5591,Part A
+Logistic Regression,0.95,0.9671,0.5591,Part A
+Logistic Regression,0.96,0.9747,0.5591,Part A
+Logistic Regression,0.97,0.981,0.5591,Part A
+Logistic Regression,0.98,0.9848,0.5591,Part A
+Logistic Regression,0.99,0.9949,0.5591,Part A
+Logistic Regression,1.0,1.0,0.5591,Part A
+K-Nearest Neighbors (KNN),0.0,0.0,0.5267,Part A
+K-Nearest Neighbors (KNN),0.01,0.0135,0.5267,Part A
+K-Nearest Neighbors (KNN),0.02,0.027,0.5267,Part A
+K-Nearest Neighbors (KNN),0.03,0.0405,0.5267,Part A
+K-Nearest Neighbors (KNN),0.04,0.0541,0.5267,Part A
+K-Nearest Neighbors (KNN),0.05,0.0676,0.5267,Part A
+K-Nearest Neighbors (KNN),0.06,0.0804,0.5267,Part A
+K-Nearest Neighbors (KNN),0.07,0.0915,0.5267,Part A
+K-Nearest Neighbors (KNN),0.08,0.1026,0.5267,Part A
+K-Nearest Neighbors (KNN),0.09,0.1136,0.5267,Part A
+K-Nearest Neighbors (KNN),0.1,0.1247,0.5267,Part A
+K-Nearest Neighbors (KNN),0.11,0.1358,0.5267,Part A
+K-Nearest Neighbors (KNN),0.12,0.1469,0.5267,Part A
+K-Nearest Neighbors (KNN),0.13,0.158,0.5267,Part A
+K-Nearest Neighbors (KNN),0.14,0.169,0.5267,Part A
+K-Nearest Neighbors (KNN),0.15,0.1801,0.5267,Part A
+K-Nearest Neighbors (KNN),0.16,0.1912,0.5267,Part A
+K-Nearest Neighbors (KNN),0.17,0.2023,0.5267,Part A
+K-Nearest Neighbors (KNN),0.18,0.2133,0.5267,Part A
+K-Nearest Neighbors (KNN),0.19,0.2244,0.5267,Part A
+K-Nearest Neighbors (KNN),0.2,0.2355,0.5267,Part A
+K-Nearest Neighbors (KNN),0.21,0.2466,0.5267,Part A
+K-Nearest Neighbors (KNN),0.22,0.2576,0.5267,Part A
+K-Nearest Neighbors (KNN),0.23,0.2687,0.5267,Part A
+K-Nearest Neighbors (KNN),0.24,0.2798,0.5267,Part A
+K-Nearest Neighbors (KNN),0.25,0.2909,0.5267,Part A
+K-Nearest Neighbors (KNN),0.26,0.3019,0.5267,Part A
+K-Nearest Neighbors (KNN),0.27,0.313,0.5267,Part A
+K-Nearest Neighbors (KNN),0.28,0.3241,0.5267,Part A
+K-Nearest Neighbors (KNN),0.29,0.3352,0.5267,Part A
+K-Nearest Neighbors (KNN),0.3,0.3463,0.5267,Part A
+K-Nearest Neighbors (KNN),0.31,0.3573,0.5267,Part A
+K-Nearest Neighbors (KNN),0.32,0.3684,0.5267,Part A
+K-Nearest Neighbors (KNN),0.33,0.3795,0.5267,Part A
+K-Nearest Neighbors (KNN),0.34,0.389,0.5267,Part A
+K-Nearest Neighbors (KNN),0.35,0.3983,0.5267,Part A
+K-Nearest Neighbors (KNN),0.36,0.4075,0.5267,Part A
+K-Nearest Neighbors (KNN),0.37,0.4168,0.5267,Part A
+K-Nearest Neighbors (KNN),0.38,0.426,0.5267,Part A
+K-Nearest Neighbors (KNN),0.39,0.4353,0.5267,Part A
+K-Nearest Neighbors (KNN),0.4,0.4445,0.5267,Part A
+K-Nearest Neighbors (KNN),0.41,0.4538,0.5267,Part A
+K-Nearest Neighbors (KNN),0.42,0.4631,0.5267,Part A
+K-Nearest Neighbors (KNN),0.43,0.4723,0.5267,Part A
+K-Nearest Neighbors (KNN),0.44,0.4816,0.5267,Part A
+K-Nearest Neighbors (KNN),0.45,0.4908,0.5267,Part A
+K-Nearest Neighbors (KNN),0.46,0.5001,0.5267,Part A
+K-Nearest Neighbors (KNN),0.47,0.5093,0.5267,Part A
+K-Nearest Neighbors (KNN),0.48,0.5186,0.5267,Part A
+K-Nearest Neighbors (KNN),0.49,0.5279,0.5267,Part A
+K-Nearest Neighbors (KNN),0.5,0.5371,0.5267,Part A
+K-Nearest Neighbors (KNN),0.51,0.5464,0.5267,Part A
+K-Nearest Neighbors (KNN),0.52,0.5556,0.5267,Part A
+K-Nearest Neighbors (KNN),0.53,0.5649,0.5267,Part A
+K-Nearest Neighbors (KNN),0.54,0.5741,0.5267,Part A
+K-Nearest Neighbors (KNN),0.55,0.5834,0.5267,Part A
+K-Nearest Neighbors (KNN),0.56,0.5927,0.5267,Part A
+K-Nearest Neighbors (KNN),0.57,0.6019,0.5267,Part A
+K-Nearest Neighbors (KNN),0.58,0.6112,0.5267,Part A
+K-Nearest Neighbors (KNN),0.59,0.6204,0.5267,Part A
+K-Nearest Neighbors (KNN),0.6,0.6297,0.5267,Part A
+K-Nearest Neighbors (KNN),0.61,0.639,0.5267,Part A
+K-Nearest Neighbors (KNN),0.62,0.6482,0.5267,Part A
+K-Nearest Neighbors (KNN),0.63,0.6575,0.5267,Part A
+K-Nearest Neighbors (KNN),0.64,0.6667,0.5267,Part A
+K-Nearest Neighbors (KNN),0.65,0.676,0.5267,Part A
+K-Nearest Neighbors (KNN),0.66,0.6852,0.5267,Part A
+K-Nearest Neighbors (KNN),0.67,0.6945,0.5267,Part A
+K-Nearest Neighbors (KNN),0.68,0.7038,0.5267,Part A
+K-Nearest Neighbors (KNN),0.69,0.713,0.5267,Part A
+K-Nearest Neighbors (KNN),0.7,0.7223,0.5267,Part A
+K-Nearest Neighbors (KNN),0.71,0.7315,0.5267,Part A
+K-Nearest Neighbors (KNN),0.72,0.7408,0.5267,Part A
+K-Nearest Neighbors (KNN),0.73,0.75,0.5267,Part A
+K-Nearest Neighbors (KNN),0.74,0.7593,0.5267,Part A
+K-Nearest Neighbors (KNN),0.75,0.7686,0.5267,Part A
+K-Nearest Neighbors (KNN),0.76,0.7778,0.5267,Part A
+K-Nearest Neighbors (KNN),0.77,0.7871,0.5267,Part A
+K-Nearest Neighbors (KNN),0.78,0.7963,0.5267,Part A
+K-Nearest Neighbors (KNN),0.79,0.8056,0.5267,Part A
+K-Nearest Neighbors (KNN),0.8,0.8148,0.5267,Part A
+K-Nearest Neighbors (KNN),0.81,0.8241,0.5267,Part A
+K-Nearest Neighbors (KNN),0.82,0.8334,0.5267,Part A
+K-Nearest Neighbors (KNN),0.83,0.8426,0.5267,Part A
+K-Nearest Neighbors (KNN),0.84,0.8519,0.5267,Part A
+K-Nearest Neighbors (KNN),0.85,0.8611,0.5267,Part A
+K-Nearest Neighbors (KNN),0.86,0.8704,0.5267,Part A
+K-Nearest Neighbors (KNN),0.87,0.8797,0.5267,Part A
+K-Nearest Neighbors (KNN),0.88,0.8889,0.5267,Part A
+K-Nearest Neighbors (KNN),0.89,0.8982,0.5267,Part A
+K-Nearest Neighbors (KNN),0.9,0.9074,0.5267,Part A
+K-Nearest Neighbors (KNN),0.91,0.9167,0.5267,Part A
+K-Nearest Neighbors (KNN),0.92,0.9259,0.5267,Part A
+K-Nearest Neighbors (KNN),0.93,0.9352,0.5267,Part A
+K-Nearest Neighbors (KNN),0.94,0.9445,0.5267,Part A
+K-Nearest Neighbors (KNN),0.95,0.9537,0.5267,Part A
+K-Nearest Neighbors (KNN),0.96,0.963,0.5267,Part A
+K-Nearest Neighbors (KNN),0.97,0.9722,0.5267,Part A
+K-Nearest Neighbors (KNN),0.98,0.9815,0.5267,Part A
+K-Nearest Neighbors (KNN),0.99,0.9907,0.5267,Part A
+K-Nearest Neighbors (KNN),1.0,1.0,0.5267,Part A
+Gaussian Naive Bayes,0.0,0.0,0.5625,Part A
+Gaussian Naive Bayes,0.01,0.0278,0.5625,Part A
+Gaussian Naive Bayes,0.02,0.0392,0.5625,Part A
+Gaussian Naive Bayes,0.03,0.0519,0.5625,Part A
+Gaussian Naive Bayes,0.04,0.0671,0.5625,Part A
+Gaussian Naive Bayes,0.05,0.0823,0.5625,Part A
+Gaussian Naive Bayes,0.06,0.0924,0.5625,Part A
+Gaussian Naive Bayes,0.07,0.1139,0.5625,Part A
+Gaussian Naive Bayes,0.08,0.1278,0.5625,Part A
+Gaussian Naive Bayes,0.09,0.1329,0.5625,Part A
+Gaussian Naive Bayes,0.1,0.1481,0.5625,Part A
+Gaussian Naive Bayes,0.11,0.1646,0.5625,Part A
+Gaussian Naive Bayes,0.12,0.1722,0.5625,Part A
+Gaussian Naive Bayes,0.13,0.1873,0.5625,Part A
+Gaussian Naive Bayes,0.14,0.2025,0.5625,Part A
+Gaussian Naive Bayes,0.15,0.219,0.5625,Part A
+Gaussian Naive Bayes,0.16,0.2354,0.5625,Part A
+Gaussian Naive Bayes,0.17,0.243,0.5625,Part A
+Gaussian Naive Bayes,0.18,0.2544,0.5625,Part A
+Gaussian Naive Bayes,0.19,0.2608,0.5625,Part A
+Gaussian Naive Bayes,0.2,0.2747,0.5625,Part A
+Gaussian Naive Bayes,0.21,0.2899,0.5625,Part A
+Gaussian Naive Bayes,0.22,0.3051,0.5625,Part A
+Gaussian Naive Bayes,0.23,0.3089,0.5625,Part A
+Gaussian Naive Bayes,0.24,0.319,0.5625,Part A
+Gaussian Naive Bayes,0.25,0.3253,0.5625,Part A
+Gaussian Naive Bayes,0.26,0.3354,0.5625,Part A
+Gaussian Naive Bayes,0.27,0.3405,0.5625,Part A
+Gaussian Naive Bayes,0.28,0.3595,0.5625,Part A
+Gaussian Naive Bayes,0.29,0.3734,0.5625,Part A
+Gaussian Naive Bayes,0.3,0.3848,0.5625,Part A
+Gaussian Naive Bayes,0.31,0.3962,0.5625,Part A
+Gaussian Naive Bayes,0.32,0.4051,0.5625,Part A
+Gaussian Naive Bayes,0.33,0.4114,0.5625,Part A
+Gaussian Naive Bayes,0.34,0.4177,0.5625,Part A
+Gaussian Naive Bayes,0.35,0.4304,0.5625,Part A
+Gaussian Naive Bayes,0.36,0.443,0.5625,Part A
+Gaussian Naive Bayes,0.37,0.4544,0.5625,Part A
+Gaussian Naive Bayes,0.38,0.4671,0.5625,Part A
+Gaussian Naive Bayes,0.39,0.4747,0.5625,Part A
+Gaussian Naive Bayes,0.4,0.4835,0.5625,Part A
+Gaussian Naive Bayes,0.41,0.4962,0.5625,Part A
+Gaussian Naive Bayes,0.42,0.5063,0.5625,Part A
+Gaussian Naive Bayes,0.43,0.519,0.5625,Part A
+Gaussian Naive Bayes,0.44,0.5316,0.5625,Part A
+Gaussian Naive Bayes,0.45,0.5392,0.5625,Part A
+Gaussian Naive Bayes,0.46,0.5468,0.5625,Part A
+Gaussian Naive Bayes,0.47,0.5595,0.5625,Part A
+Gaussian Naive Bayes,0.48,0.5734,0.5625,Part A
+Gaussian Naive Bayes,0.49,0.5835,0.5625,Part A
+Gaussian Naive Bayes,0.5,0.5899,0.5625,Part A
+Gaussian Naive Bayes,0.51,0.6013,0.5625,Part A
+Gaussian Naive Bayes,0.52,0.6101,0.5625,Part A
+Gaussian Naive Bayes,0.53,0.6139,0.5625,Part A
+Gaussian Naive Bayes,0.54,0.6177,0.5625,Part A
+Gaussian Naive Bayes,0.55,0.6342,0.5625,Part A
+Gaussian Naive Bayes,0.56,0.6392,0.5625,Part A
+Gaussian Naive Bayes,0.57,0.6494,0.5625,Part A
+Gaussian Naive Bayes,0.58,0.6532,0.5625,Part A
+Gaussian Naive Bayes,0.59,0.6671,0.5625,Part A
+Gaussian Naive Bayes,0.6,0.6886,0.5625,Part A
+Gaussian Naive Bayes,0.61,0.6937,0.5625,Part A
+Gaussian Naive Bayes,0.62,0.7063,0.5625,Part A
+Gaussian Naive Bayes,0.63,0.7114,0.5625,Part A
+Gaussian Naive Bayes,0.64,0.7177,0.5625,Part A
+Gaussian Naive Bayes,0.65,0.7241,0.5625,Part A
+Gaussian Naive Bayes,0.66,0.7291,0.5625,Part A
+Gaussian Naive Bayes,0.67,0.7418,0.5625,Part A
+Gaussian Naive Bayes,0.68,0.7544,0.5625,Part A
+Gaussian Naive Bayes,0.69,0.7633,0.5625,Part A
+Gaussian Naive Bayes,0.7,0.7696,0.5625,Part A
+Gaussian Naive Bayes,0.71,0.7772,0.5625,Part A
+Gaussian Naive Bayes,0.72,0.7797,0.5625,Part A
+Gaussian Naive Bayes,0.73,0.7835,0.5625,Part A
+Gaussian Naive Bayes,0.74,0.7873,0.5625,Part A
+Gaussian Naive Bayes,0.75,0.8,0.5625,Part A
+Gaussian Naive Bayes,0.76,0.8177,0.5625,Part A
+Gaussian Naive Bayes,0.77,0.8228,0.5625,Part A
+Gaussian Naive Bayes,0.78,0.838,0.5625,Part A
+Gaussian Naive Bayes,0.79,0.8481,0.5625,Part A
+Gaussian Naive Bayes,0.8,0.8506,0.5625,Part A
+Gaussian Naive Bayes,0.81,0.8544,0.5625,Part A
+Gaussian Naive Bayes,0.82,0.8671,0.5625,Part A
+Gaussian Naive Bayes,0.83,0.8747,0.5625,Part A
+Gaussian Naive Bayes,0.84,0.8835,0.5625,Part A
+Gaussian Naive Bayes,0.85,0.8899,0.5625,Part A
+Gaussian Naive Bayes,0.86,0.8975,0.5625,Part A
+Gaussian Naive Bayes,0.87,0.9051,0.5625,Part A
+Gaussian Naive Bayes,0.88,0.9177,0.5625,Part A
+Gaussian Naive Bayes,0.89,0.9278,0.5625,Part A
+Gaussian Naive Bayes,0.9,0.9405,0.5625,Part A
+Gaussian Naive Bayes,0.91,0.9481,0.5625,Part A
+Gaussian Naive Bayes,0.92,0.9494,0.5625,Part A
+Gaussian Naive Bayes,0.93,0.9506,0.5625,Part A
+Gaussian Naive Bayes,0.94,0.962,0.5625,Part A
+Gaussian Naive Bayes,0.95,0.9671,0.5625,Part A
+Gaussian Naive Bayes,0.96,0.9722,0.5625,Part A
+Gaussian Naive Bayes,0.97,0.9861,0.5625,Part A
+Gaussian Naive Bayes,0.98,0.9911,0.5625,Part A
+Gaussian Naive Bayes,0.99,0.9987,0.5625,Part A
+Gaussian Naive Bayes,1.0,1.0,0.5625,Part A
+Decision Tree Classifier,0.0,0.0,0.5619,Part A
+Decision Tree Classifier,0.01,0.0165,0.5619,Part A
+Decision Tree Classifier,0.02,0.0339,0.5619,Part A
+Decision Tree Classifier,0.03,0.0502,0.5619,Part A
+Decision Tree Classifier,0.04,0.0665,0.5619,Part A
+Decision Tree Classifier,0.05,0.0828,0.5619,Part A
+Decision Tree Classifier,0.06,0.0992,0.5619,Part A
+Decision Tree Classifier,0.07,0.1155,0.5619,Part A
+Decision Tree Classifier,0.08,0.1318,0.5619,Part A
+Decision Tree Classifier,0.09,0.1439,0.5619,Part A
+Decision Tree Classifier,0.1,0.1545,0.5619,Part A
+Decision Tree Classifier,0.11,0.1653,0.5619,Part A
+Decision Tree Classifier,0.12,0.176,0.5619,Part A
+Decision Tree Classifier,0.13,0.1868,0.5619,Part A
+Decision Tree Classifier,0.14,0.1975,0.5619,Part A
+Decision Tree Classifier,0.15,0.2083,0.5619,Part A
+Decision Tree Classifier,0.16,0.2191,0.5619,Part A
+Decision Tree Classifier,0.17,0.2298,0.5619,Part A
+Decision Tree Classifier,0.18,0.2406,0.5619,Part A
+Decision Tree Classifier,0.19,0.2513,0.5619,Part A
+Decision Tree Classifier,0.2,0.2621,0.5619,Part A
+Decision Tree Classifier,0.21,0.2728,0.5619,Part A
+Decision Tree Classifier,0.22,0.2836,0.5619,Part A
+Decision Tree Classifier,0.23,0.2944,0.5619,Part A
+Decision Tree Classifier,0.24,0.3051,0.5619,Part A
+Decision Tree Classifier,0.25,0.3159,0.5619,Part A
+Decision Tree Classifier,0.26,0.3266,0.5619,Part A
+Decision Tree Classifier,0.27,0.3374,0.5619,Part A
+Decision Tree Classifier,0.28,0.3481,0.5619,Part A
+Decision Tree Classifier,0.29,0.3589,0.5619,Part A
+Decision Tree Classifier,0.3,0.3697,0.5619,Part A
+Decision Tree Classifier,0.31,0.3804,0.5619,Part A
+Decision Tree Classifier,0.32,0.3912,0.5619,Part A
+Decision Tree Classifier,0.33,0.4019,0.5619,Part A
+Decision Tree Classifier,0.34,0.4127,0.5619,Part A
+Decision Tree Classifier,0.35,0.4235,0.5619,Part A
+Decision Tree Classifier,0.36,0.4342,0.5619,Part A
+Decision Tree Classifier,0.37,0.445,0.5619,Part A
+Decision Tree Classifier,0.38,0.4557,0.5619,Part A
+Decision Tree Classifier,0.39,0.4665,0.5619,Part A
+Decision Tree Classifier,0.4,0.4772,0.5619,Part A
+Decision Tree Classifier,0.41,0.488,0.5619,Part A
+Decision Tree Classifier,0.42,0.4988,0.5619,Part A
+Decision Tree Classifier,0.43,0.5095,0.5619,Part A
+Decision Tree Classifier,0.44,0.5203,0.5619,Part A
+Decision Tree Classifier,0.45,0.531,0.5619,Part A
+Decision Tree Classifier,0.46,0.5418,0.5619,Part A
+Decision Tree Classifier,0.47,0.5529,0.5619,Part A
+Decision Tree Classifier,0.48,0.5637,0.5619,Part A
+Decision Tree Classifier,0.49,0.5744,0.5619,Part A
+Decision Tree Classifier,0.5,0.5851,0.5619,Part A
+Decision Tree Classifier,0.51,0.5958,0.5619,Part A
+Decision Tree Classifier,0.52,0.6065,0.5619,Part A
+Decision Tree Classifier,0.53,0.6172,0.5619,Part A
+Decision Tree Classifier,0.54,0.6279,0.5619,Part A
+Decision Tree Classifier,0.55,0.6386,0.5619,Part A
+Decision Tree Classifier,0.56,0.6493,0.5619,Part A
+Decision Tree Classifier,0.57,0.66,0.5619,Part A
+Decision Tree Classifier,0.58,0.6707,0.5619,Part A
+Decision Tree Classifier,0.59,0.6814,0.5619,Part A
+Decision Tree Classifier,0.6,0.6921,0.5619,Part A
+Decision Tree Classifier,0.61,0.7028,0.5619,Part A
+Decision Tree Classifier,0.62,0.7135,0.5619,Part A
+Decision Tree Classifier,0.63,0.7242,0.5619,Part A
+Decision Tree Classifier,0.64,0.7355,0.5619,Part A
+Decision Tree Classifier,0.65,0.7485,0.5619,Part A
+Decision Tree Classifier,0.66,0.7544,0.5619,Part A
+Decision Tree Classifier,0.67,0.7615,0.5619,Part A
+Decision Tree Classifier,0.68,0.7686,0.5619,Part A
+Decision Tree Classifier,0.69,0.7757,0.5619,Part A
+Decision Tree Classifier,0.7,0.7828,0.5619,Part A
+Decision Tree Classifier,0.71,0.7899,0.5619,Part A
+Decision Tree Classifier,0.72,0.7969,0.5619,Part A
+Decision Tree Classifier,0.73,0.804,0.5619,Part A
+Decision Tree Classifier,0.74,0.8111,0.5619,Part A
+Decision Tree Classifier,0.75,0.8182,0.5619,Part A
+Decision Tree Classifier,0.76,0.8253,0.5619,Part A
+Decision Tree Classifier,0.77,0.8324,0.5619,Part A
+Decision Tree Classifier,0.78,0.8395,0.5619,Part A
+Decision Tree Classifier,0.79,0.8465,0.5619,Part A
+Decision Tree Classifier,0.8,0.8537,0.5619,Part A
+Decision Tree Classifier,0.81,0.8614,0.5619,Part A
+Decision Tree Classifier,0.82,0.8692,0.5619,Part A
+Decision Tree Classifier,0.83,0.877,0.5619,Part A
+Decision Tree Classifier,0.84,0.8847,0.5619,Part A
+Decision Tree Classifier,0.85,0.8925,0.5619,Part A
+Decision Tree Classifier,0.86,0.9002,0.5619,Part A
+Decision Tree Classifier,0.87,0.9079,0.5619,Part A
+Decision Tree Classifier,0.88,0.9151,0.5619,Part A
+Decision Tree Classifier,0.89,0.9237,0.5619,Part A
+Decision Tree Classifier,0.9,0.9322,0.5619,Part A
+Decision Tree Classifier,0.91,0.9408,0.5619,Part A
+Decision Tree Classifier,0.92,0.9499,0.5619,Part A
+Decision Tree Classifier,0.93,0.9553,0.5619,Part A
+Decision Tree Classifier,0.94,0.9611,0.5619,Part A
+Decision Tree Classifier,0.95,0.9669,0.5619,Part A
+Decision Tree Classifier,0.96,0.9728,0.5619,Part A
+Decision Tree Classifier,0.97,0.9786,0.5619,Part A
+Decision Tree Classifier,0.98,0.9843,0.5619,Part A
+Decision Tree Classifier,0.99,0.9916,0.5619,Part A
+Decision Tree Classifier,1.0,1.0,0.5619,Part A
+Support Vector Classifier (SVC),0.0,0.0,0.4996,Part A
+Support Vector Classifier (SVC),0.01,0.0063,0.4996,Part A
+Support Vector Classifier (SVC),0.02,0.0101,0.4996,Part A
+Support Vector Classifier (SVC),0.03,0.0203,0.4996,Part A
+Support Vector Classifier (SVC),0.04,0.0329,0.4996,Part A
+Support Vector Classifier (SVC),0.05,0.0354,0.4996,Part A
+Support Vector Classifier (SVC),0.06,0.043,0.4996,Part A
+Support Vector Classifier (SVC),0.07,0.0532,0.4996,Part A
+Support Vector Classifier (SVC),0.08,0.0658,0.4996,Part A
+Support Vector Classifier (SVC),0.09,0.081,0.4996,Part A
+Support Vector Classifier (SVC),0.1,0.0873,0.4996,Part A
+Support Vector Classifier (SVC),0.11,0.0962,0.4996,Part A
+Support Vector Classifier (SVC),0.12,0.0987,0.4996,Part A
+Support Vector Classifier (SVC),0.13,0.1076,0.4996,Part A
+Support Vector Classifier (SVC),0.14,0.1152,0.4996,Part A
+Support Vector Classifier (SVC),0.15,0.1278,0.4996,Part A
+Support Vector Classifier (SVC),0.16,0.1342,0.4996,Part A
+Support Vector Classifier (SVC),0.17,0.143,0.4996,Part A
+Support Vector Classifier (SVC),0.18,0.162,0.4996,Part A
+Support Vector Classifier (SVC),0.19,0.1734,0.4996,Part A
+Support Vector Classifier (SVC),0.2,0.1759,0.4996,Part A
+Support Vector Classifier (SVC),0.21,0.1911,0.4996,Part A
+Support Vector Classifier (SVC),0.22,0.2,0.4996,Part A
+Support Vector Classifier (SVC),0.23,0.2089,0.4996,Part A
+Support Vector Classifier (SVC),0.24,0.219,0.4996,Part A
+Support Vector Classifier (SVC),0.25,0.2304,0.4996,Part A
+Support Vector Classifier (SVC),0.26,0.2418,0.4996,Part A
+Support Vector Classifier (SVC),0.27,0.2557,0.4996,Part A
+Support Vector Classifier (SVC),0.28,0.2722,0.4996,Part A
+Support Vector Classifier (SVC),0.29,0.2759,0.4996,Part A
+Support Vector Classifier (SVC),0.3,0.2924,0.4996,Part A
+Support Vector Classifier (SVC),0.31,0.3013,0.4996,Part A
+Support Vector Classifier (SVC),0.32,0.3114,0.4996,Part A
+Support Vector Classifier (SVC),0.33,0.3241,0.4996,Part A
+Support Vector Classifier (SVC),0.34,0.338,0.4996,Part A
+Support Vector Classifier (SVC),0.35,0.3468,0.4996,Part A
+Support Vector Classifier (SVC),0.36,0.362,0.4996,Part A
+Support Vector Classifier (SVC),0.37,0.3658,0.4996,Part A
+Support Vector Classifier (SVC),0.38,0.3747,0.4996,Part A
+Support Vector Classifier (SVC),0.39,0.3899,0.4996,Part A
+Support Vector Classifier (SVC),0.4,0.4025,0.4996,Part A
+Support Vector Classifier (SVC),0.41,0.4152,0.4996,Part A
+Support Vector Classifier (SVC),0.42,0.4278,0.4996,Part A
+Support Vector Classifier (SVC),0.43,0.4456,0.4996,Part A
+Support Vector Classifier (SVC),0.44,0.4532,0.4996,Part A
+Support Vector Classifier (SVC),0.45,0.4595,0.4996,Part A
+Support Vector Classifier (SVC),0.46,0.4709,0.4996,Part A
+Support Vector Classifier (SVC),0.47,0.481,0.4996,Part A
+Support Vector Classifier (SVC),0.48,0.4937,0.4996,Part A
+Support Vector Classifier (SVC),0.49,0.4962,0.4996,Part A
+Support Vector Classifier (SVC),0.5,0.5089,0.4996,Part A
+Support Vector Classifier (SVC),0.51,0.5152,0.4996,Part A
+Support Vector Classifier (SVC),0.52,0.5354,0.4996,Part A
+Support Vector Classifier (SVC),0.53,0.5468,0.4996,Part A
+Support Vector Classifier (SVC),0.54,0.5582,0.4996,Part A
+Support Vector Classifier (SVC),0.55,0.5658,0.4996,Part A
+Support Vector Classifier (SVC),0.56,0.5759,0.4996,Part A
+Support Vector Classifier (SVC),0.57,0.5785,0.4996,Part A
+Support Vector Classifier (SVC),0.58,0.5924,0.4996,Part A
+Support Vector Classifier (SVC),0.59,0.6025,0.4996,Part A
+Support Vector Classifier (SVC),0.6,0.6114,0.4996,Part A
+Support Vector Classifier (SVC),0.61,0.6215,0.4996,Part A
+Support Vector Classifier (SVC),0.62,0.6291,0.4996,Part A
+Support Vector Classifier (SVC),0.63,0.6443,0.4996,Part A
+Support Vector Classifier (SVC),0.64,0.6544,0.4996,Part A
+Support Vector Classifier (SVC),0.65,0.6608,0.4996,Part A
+Support Vector Classifier (SVC),0.66,0.6734,0.4996,Part A
+Support Vector Classifier (SVC),0.67,0.6797,0.4996,Part A
+Support Vector Classifier (SVC),0.68,0.6873,0.4996,Part A
+Support Vector Classifier (SVC),0.69,0.7025,0.4996,Part A
+Support Vector Classifier (SVC),0.7,0.7089,0.4996,Part A
+Support Vector Classifier (SVC),0.71,0.7203,0.4996,Part A
+Support Vector Classifier (SVC),0.72,0.7304,0.4996,Part A
+Support Vector Classifier (SVC),0.73,0.743,0.4996,Part A
+Support Vector Classifier (SVC),0.74,0.7544,0.4996,Part A
+Support Vector Classifier (SVC),0.75,0.7608,0.4996,Part A
+Support Vector Classifier (SVC),0.76,0.7747,0.4996,Part A
+Support Vector Classifier (SVC),0.77,0.7873,0.4996,Part A
+Support Vector Classifier (SVC),0.78,0.7949,0.4996,Part A
+Support Vector Classifier (SVC),0.79,0.8038,0.4996,Part A
+Support Vector Classifier (SVC),0.8,0.8139,0.4996,Part A
+Support Vector Classifier (SVC),0.81,0.8215,0.4996,Part A
+Support Vector Classifier (SVC),0.82,0.8354,0.4996,Part A
+Support Vector Classifier (SVC),0.83,0.843,0.4996,Part A
+Support Vector Classifier (SVC),0.84,0.8506,0.4996,Part A
+Support Vector Classifier (SVC),0.85,0.8544,0.4996,Part A
+Support Vector Classifier (SVC),0.86,0.8646,0.4996,Part A
+Support Vector Classifier (SVC),0.87,0.8734,0.4996,Part A
+Support Vector Classifier (SVC),0.88,0.8759,0.4996,Part A
+Support Vector Classifier (SVC),0.89,0.8848,0.4996,Part A
+Support Vector Classifier (SVC),0.9,0.8962,0.4996,Part A
+Support Vector Classifier (SVC),0.91,0.9076,0.4996,Part A
+Support Vector Classifier (SVC),0.92,0.9177,0.4996,Part A
+Support Vector Classifier (SVC),0.93,0.9304,0.4996,Part A
+Support Vector Classifier (SVC),0.94,0.9354,0.4996,Part A
+Support Vector Classifier (SVC),0.95,0.9456,0.4996,Part A
+Support Vector Classifier (SVC),0.96,0.9544,0.4996,Part A
+Support Vector Classifier (SVC),0.97,0.9608,0.4996,Part A
+Support Vector Classifier (SVC),0.98,0.9747,0.4996,Part A
+Support Vector Classifier (SVC),0.99,0.9861,0.4996,Part A
+Support Vector Classifier (SVC),1.0,1.0,0.4996,Part A
+Random Forest Classifier,0.0,0.0,0.5532,Part B
+Random Forest Classifier,0.01,0.0114,0.5532,Part B
+Random Forest Classifier,0.02,0.0261,0.5532,Part B
+Random Forest Classifier,0.03,0.0405,0.5532,Part B
+Random Forest Classifier,0.04,0.0532,0.5532,Part B
+Random Forest Classifier,0.05,0.0707,0.5532,Part B
+Random Forest Classifier,0.06,0.0826,0.5532,Part B
+Random Forest Classifier,0.07,0.097,0.5532,Part B
+Random Forest Classifier,0.08,0.1108,0.5532,Part B
+Random Forest Classifier,0.09,0.128,0.5532,Part B
+Random Forest Classifier,0.1,0.1415,0.5532,Part B
+Random Forest Classifier,0.11,0.154,0.5532,Part B
+Random Forest Classifier,0.12,0.1659,0.5532,Part B
+Random Forest Classifier,0.13,0.1818,0.5532,Part B
+Random Forest Classifier,0.14,0.2003,0.5532,Part B
+Random Forest Classifier,0.15,0.2112,0.5532,Part B
+Random Forest Classifier,0.16,0.2228,0.5532,Part B
+Random Forest Classifier,0.17,0.232,0.5532,Part B
+Random Forest Classifier,0.18,0.2422,0.5532,Part B
+Random Forest Classifier,0.19,0.2509,0.5532,Part B
+Random Forest Classifier,0.2,0.2602,0.5532,Part B
+Random Forest Classifier,0.21,0.2684,0.5532,Part B
+Random Forest Classifier,0.22,0.2793,0.5532,Part B
+Random Forest Classifier,0.23,0.2906,0.5532,Part B
+Random Forest Classifier,0.24,0.3019,0.5532,Part B
+Random Forest Classifier,0.25,0.3121,0.5532,Part B
+Random Forest Classifier,0.26,0.321,0.5532,Part B
+Random Forest Classifier,0.27,0.3299,0.5532,Part B
+Random Forest Classifier,0.28,0.3388,0.5532,Part B
+Random Forest Classifier,0.29,0.3502,0.5532,Part B
+Random Forest Classifier,0.3,0.361,0.5532,Part B
+Random Forest Classifier,0.31,0.3718,0.5532,Part B
+Random Forest Classifier,0.32,0.3826,0.5532,Part B
+Random Forest Classifier,0.33,0.3954,0.5532,Part B
+Random Forest Classifier,0.34,0.408,0.5532,Part B
+Random Forest Classifier,0.35,0.4206,0.5532,Part B
+Random Forest Classifier,0.36,0.4332,0.5532,Part B
+Random Forest Classifier,0.37,0.4458,0.5532,Part B
+Random Forest Classifier,0.38,0.4541,0.5532,Part B
+Random Forest Classifier,0.39,0.4645,0.5532,Part B
+Random Forest Classifier,0.4,0.4748,0.5532,Part B
+Random Forest Classifier,0.41,0.4852,0.5532,Part B
+Random Forest Classifier,0.42,0.4956,0.5532,Part B
+Random Forest Classifier,0.43,0.5046,0.5532,Part B
+Random Forest Classifier,0.44,0.5145,0.5532,Part B
+Random Forest Classifier,0.45,0.5245,0.5532,Part B
+Random Forest Classifier,0.46,0.5344,0.5532,Part B
+Random Forest Classifier,0.47,0.5443,0.5532,Part B
+Random Forest Classifier,0.48,0.5543,0.5532,Part B
+Random Forest Classifier,0.49,0.5653,0.5532,Part B
+Random Forest Classifier,0.5,0.5752,0.5532,Part B
+Random Forest Classifier,0.51,0.5852,0.5532,Part B
+Random Forest Classifier,0.52,0.5951,0.5532,Part B
+Random Forest Classifier,0.53,0.605,0.5532,Part B
+Random Forest Classifier,0.54,0.6149,0.5532,Part B
+Random Forest Classifier,0.55,0.6249,0.5532,Part B
+Random Forest Classifier,0.56,0.6304,0.5532,Part B
+Random Forest Classifier,0.57,0.6405,0.5532,Part B
+Random Forest Classifier,0.58,0.6507,0.5532,Part B
+Random Forest Classifier,0.59,0.6608,0.5532,Part B
+Random Forest Classifier,0.6,0.671,0.5532,Part B
+Random Forest Classifier,0.61,0.6811,0.5532,Part B
+Random Forest Classifier,0.62,0.6913,0.5532,Part B
+Random Forest Classifier,0.63,0.7006,0.5532,Part B
+Random Forest Classifier,0.64,0.7078,0.5532,Part B
+Random Forest Classifier,0.65,0.7149,0.5532,Part B
+Random Forest Classifier,0.66,0.7221,0.5532,Part B
+Random Forest Classifier,0.67,0.7292,0.5532,Part B
+Random Forest Classifier,0.68,0.7363,0.5532,Part B
+Random Forest Classifier,0.69,0.7435,0.5532,Part B
+Random Forest Classifier,0.7,0.7506,0.5532,Part B
+Random Forest Classifier,0.71,0.7605,0.5532,Part B
+Random Forest Classifier,0.72,0.7708,0.5532,Part B
+Random Forest Classifier,0.73,0.7811,0.5532,Part B
+Random Forest Classifier,0.74,0.7914,0.5532,Part B
+Random Forest Classifier,0.75,0.8017,0.5532,Part B
+Random Forest Classifier,0.76,0.812,0.5532,Part B
+Random Forest Classifier,0.77,0.8228,0.5532,Part B
+Random Forest Classifier,0.78,0.8322,0.5532,Part B
+Random Forest Classifier,0.79,0.8419,0.5532,Part B
+Random Forest Classifier,0.8,0.8517,0.5532,Part B
+Random Forest Classifier,0.81,0.8614,0.5532,Part B
+Random Forest Classifier,0.82,0.8712,0.5532,Part B
+Random Forest Classifier,0.83,0.8809,0.5532,Part B
+Random Forest Classifier,0.84,0.8899,0.5532,Part B
+Random Forest Classifier,0.85,0.8959,0.5532,Part B
+Random Forest Classifier,0.86,0.9034,0.5532,Part B
+Random Forest Classifier,0.87,0.9109,0.5532,Part B
+Random Forest Classifier,0.88,0.9185,0.5532,Part B
+Random Forest Classifier,0.89,0.926,0.5532,Part B
+Random Forest Classifier,0.9,0.9335,0.5532,Part B
+Random Forest Classifier,0.91,0.9422,0.5532,Part B
+Random Forest Classifier,0.92,0.9495,0.5532,Part B
+Random Forest Classifier,0.93,0.9568,0.5532,Part B
+Random Forest Classifier,0.94,0.9641,0.5532,Part B
+Random Forest Classifier,0.95,0.9713,0.5532,Part B
+Random Forest Classifier,0.96,0.977,0.5532,Part B
+Random Forest Classifier,0.97,0.9828,0.5532,Part B
+Random Forest Classifier,0.98,0.9885,0.5532,Part B
+Random Forest Classifier,0.99,0.9943,0.5532,Part B
+Random Forest Classifier,1.0,1.0,0.5532,Part B
+AdaBoost Classifier,0.0,0.0,0.5577,Part B
+AdaBoost Classifier,0.01,0.0159,0.5577,Part B
+AdaBoost Classifier,0.02,0.03,0.5577,Part B
+AdaBoost Classifier,0.03,0.0455,0.5577,Part B
+AdaBoost Classifier,0.04,0.0608,0.5577,Part B
+AdaBoost Classifier,0.05,0.076,0.5577,Part B
+AdaBoost Classifier,0.06,0.0913,0.5577,Part B
+AdaBoost Classifier,0.07,0.1065,0.5577,Part B
+AdaBoost Classifier,0.08,0.1218,0.5577,Part B
+AdaBoost Classifier,0.09,0.137,0.5577,Part B
+AdaBoost Classifier,0.1,0.1523,0.5577,Part B
+AdaBoost Classifier,0.11,0.1653,0.5577,Part B
+AdaBoost Classifier,0.12,0.1757,0.5577,Part B
+AdaBoost Classifier,0.13,0.186,0.5577,Part B
+AdaBoost Classifier,0.14,0.1964,0.5577,Part B
+AdaBoost Classifier,0.15,0.2068,0.5577,Part B
+AdaBoost Classifier,0.16,0.2172,0.5577,Part B
+AdaBoost Classifier,0.17,0.2276,0.5577,Part B
+AdaBoost Classifier,0.18,0.238,0.5577,Part B
+AdaBoost Classifier,0.19,0.2483,0.5577,Part B
+AdaBoost Classifier,0.2,0.2587,0.5577,Part B
+AdaBoost Classifier,0.21,0.2691,0.5577,Part B
+AdaBoost Classifier,0.22,0.2795,0.5577,Part B
+AdaBoost Classifier,0.23,0.2899,0.5577,Part B
+AdaBoost Classifier,0.24,0.3003,0.5577,Part B
+AdaBoost Classifier,0.25,0.3106,0.5577,Part B
+AdaBoost Classifier,0.26,0.321,0.5577,Part B
+AdaBoost Classifier,0.27,0.3314,0.5577,Part B
+AdaBoost Classifier,0.28,0.3418,0.5577,Part B
+AdaBoost Classifier,0.29,0.3522,0.5577,Part B
+AdaBoost Classifier,0.3,0.3625,0.5577,Part B
+AdaBoost Classifier,0.31,0.3729,0.5577,Part B
+AdaBoost Classifier,0.32,0.3833,0.5577,Part B
+AdaBoost Classifier,0.33,0.3937,0.5577,Part B
+AdaBoost Classifier,0.34,0.4041,0.5577,Part B
+AdaBoost Classifier,0.35,0.4145,0.5577,Part B
+AdaBoost Classifier,0.36,0.4248,0.5577,Part B
+AdaBoost Classifier,0.37,0.4352,0.5577,Part B
+AdaBoost Classifier,0.38,0.4456,0.5577,Part B
+AdaBoost Classifier,0.39,0.456,0.5577,Part B
+AdaBoost Classifier,0.4,0.4664,0.5577,Part B
+AdaBoost Classifier,0.41,0.4768,0.5577,Part B
+AdaBoost Classifier,0.42,0.4871,0.5577,Part B
+AdaBoost Classifier,0.43,0.4975,0.5577,Part B
+AdaBoost Classifier,0.44,0.5079,0.5577,Part B
+AdaBoost Classifier,0.45,0.5183,0.5577,Part B
+AdaBoost Classifier,0.46,0.5287,0.5577,Part B
+AdaBoost Classifier,0.47,0.5391,0.5577,Part B
+AdaBoost Classifier,0.48,0.5494,0.5577,Part B
+AdaBoost Classifier,0.49,0.5598,0.5577,Part B
+AdaBoost Classifier,0.5,0.5702,0.5577,Part B
+AdaBoost Classifier,0.51,0.5806,0.5577,Part B
+AdaBoost Classifier,0.52,0.591,0.5577,Part B
+AdaBoost Classifier,0.53,0.6013,0.5577,Part B
+AdaBoost Classifier,0.54,0.6117,0.5577,Part B
+AdaBoost Classifier,0.55,0.6221,0.5577,Part B
+AdaBoost Classifier,0.56,0.6325,0.5577,Part B
+AdaBoost Classifier,0.57,0.6429,0.5577,Part B
+AdaBoost Classifier,0.58,0.6533,0.5577,Part B
+AdaBoost Classifier,0.59,0.6636,0.5577,Part B
+AdaBoost Classifier,0.6,0.674,0.5577,Part B
+AdaBoost Classifier,0.61,0.6844,0.5577,Part B
+AdaBoost Classifier,0.62,0.6948,0.5577,Part B
+AdaBoost Classifier,0.63,0.7052,0.5577,Part B
+AdaBoost Classifier,0.64,0.7156,0.5577,Part B
+AdaBoost Classifier,0.65,0.7259,0.5577,Part B
+AdaBoost Classifier,0.66,0.7363,0.5577,Part B
+AdaBoost Classifier,0.67,0.7467,0.5577,Part B
+AdaBoost Classifier,0.68,0.7571,0.5577,Part B
+AdaBoost Classifier,0.69,0.7675,0.5577,Part B
+AdaBoost Classifier,0.7,0.7779,0.5577,Part B
+AdaBoost Classifier,0.71,0.7882,0.5577,Part B
+AdaBoost Classifier,0.72,0.7986,0.5577,Part B
+AdaBoost Classifier,0.73,0.809,0.5577,Part B
+AdaBoost Classifier,0.74,0.8179,0.5577,Part B
+AdaBoost Classifier,0.75,0.8255,0.5577,Part B
+AdaBoost Classifier,0.76,0.8349,0.5577,Part B
+AdaBoost Classifier,0.77,0.846,0.5577,Part B
+AdaBoost Classifier,0.78,0.8568,0.5577,Part B
+AdaBoost Classifier,0.79,0.8636,0.5577,Part B
+AdaBoost Classifier,0.8,0.8706,0.5577,Part B
+AdaBoost Classifier,0.81,0.8775,0.5577,Part B
+AdaBoost Classifier,0.82,0.8845,0.5577,Part B
+AdaBoost Classifier,0.83,0.8914,0.5577,Part B
+AdaBoost Classifier,0.84,0.8983,0.5577,Part B
+AdaBoost Classifier,0.85,0.9053,0.5577,Part B
+AdaBoost Classifier,0.86,0.9122,0.5577,Part B
+AdaBoost Classifier,0.87,0.9192,0.5577,Part B
+AdaBoost Classifier,0.88,0.9261,0.5577,Part B
+AdaBoost Classifier,0.89,0.933,0.5577,Part B
+AdaBoost Classifier,0.9,0.94,0.5577,Part B
+AdaBoost Classifier,0.91,0.9468,0.5577,Part B
+AdaBoost Classifier,0.92,0.9495,0.5577,Part B
+AdaBoost Classifier,0.93,0.9583,0.5577,Part B
+AdaBoost Classifier,0.94,0.9644,0.5577,Part B
+AdaBoost Classifier,0.95,0.9709,0.5577,Part B
+AdaBoost Classifier,0.96,0.9776,0.5577,Part B
+AdaBoost Classifier,0.97,0.9844,0.5577,Part B
+AdaBoost Classifier,0.98,0.9911,0.5577,Part B
+AdaBoost Classifier,0.99,0.9978,0.5577,Part B
+AdaBoost Classifier,1.0,1.0,0.5577,Part B
+Gradient Boosting Classifier,0.0,0.0,0.5761,Part B
+Gradient Boosting Classifier,0.01,0.0215,0.5761,Part B
+Gradient Boosting Classifier,0.02,0.038,0.5761,Part B
+Gradient Boosting Classifier,0.03,0.0558,0.5761,Part B
+Gradient Boosting Classifier,0.04,0.0747,0.5761,Part B
+Gradient Boosting Classifier,0.05,0.0912,0.5761,Part B
+Gradient Boosting Classifier,0.06,0.1177,0.5761,Part B
+Gradient Boosting Classifier,0.07,0.1304,0.5761,Part B
+Gradient Boosting Classifier,0.08,0.1505,0.5761,Part B
+Gradient Boosting Classifier,0.09,0.1582,0.5761,Part B
+Gradient Boosting Classifier,0.1,0.1696,0.5761,Part B
+Gradient Boosting Classifier,0.11,0.1861,0.5761,Part B
+Gradient Boosting Classifier,0.12,0.1924,0.5761,Part B
+Gradient Boosting Classifier,0.13,0.201,0.5761,Part B
+Gradient Boosting Classifier,0.14,0.2136,0.5761,Part B
+Gradient Boosting Classifier,0.15,0.2262,0.5761,Part B
+Gradient Boosting Classifier,0.16,0.2342,0.5761,Part B
+Gradient Boosting Classifier,0.17,0.247,0.5761,Part B
+Gradient Boosting Classifier,0.18,0.2611,0.5761,Part B
+Gradient Boosting Classifier,0.19,0.2737,0.5761,Part B
+Gradient Boosting Classifier,0.2,0.2864,0.5761,Part B
+Gradient Boosting Classifier,0.21,0.299,0.5761,Part B
+Gradient Boosting Classifier,0.22,0.3117,0.5761,Part B
+Gradient Boosting Classifier,0.23,0.3243,0.5761,Part B
+Gradient Boosting Classifier,0.24,0.3347,0.5761,Part B
+Gradient Boosting Classifier,0.25,0.3405,0.5761,Part B
+Gradient Boosting Classifier,0.26,0.3519,0.5761,Part B
+Gradient Boosting Classifier,0.27,0.3631,0.5761,Part B
+Gradient Boosting Classifier,0.28,0.3695,0.5761,Part B
+Gradient Boosting Classifier,0.29,0.3879,0.5761,Part B
+Gradient Boosting Classifier,0.3,0.3995,0.5761,Part B
+Gradient Boosting Classifier,0.31,0.4045,0.5761,Part B
+Gradient Boosting Classifier,0.32,0.4114,0.5761,Part B
+Gradient Boosting Classifier,0.33,0.4191,0.5761,Part B
+Gradient Boosting Classifier,0.34,0.4293,0.5761,Part B
+Gradient Boosting Classifier,0.35,0.4371,0.5761,Part B
+Gradient Boosting Classifier,0.36,0.4478,0.5761,Part B
+Gradient Boosting Classifier,0.37,0.4614,0.5761,Part B
+Gradient Boosting Classifier,0.38,0.4784,0.5761,Part B
+Gradient Boosting Classifier,0.39,0.4888,0.5761,Part B
+Gradient Boosting Classifier,0.4,0.4932,0.5761,Part B
+Gradient Boosting Classifier,0.41,0.5079,0.5761,Part B
+Gradient Boosting Classifier,0.42,0.516,0.5761,Part B
+Gradient Boosting Classifier,0.43,0.5218,0.5761,Part B
+Gradient Boosting Classifier,0.44,0.5306,0.5761,Part B
+Gradient Boosting Classifier,0.45,0.5456,0.5761,Part B
+Gradient Boosting Classifier,0.46,0.5557,0.5761,Part B
+Gradient Boosting Classifier,0.47,0.5662,0.5761,Part B
+Gradient Boosting Classifier,0.48,0.5796,0.5761,Part B
+Gradient Boosting Classifier,0.49,0.5886,0.5761,Part B
+Gradient Boosting Classifier,0.5,0.5931,0.5761,Part B
+Gradient Boosting Classifier,0.51,0.5997,0.5761,Part B
+Gradient Boosting Classifier,0.52,0.6105,0.5761,Part B
+Gradient Boosting Classifier,0.53,0.6193,0.5761,Part B
+Gradient Boosting Classifier,0.54,0.6261,0.5761,Part B
+Gradient Boosting Classifier,0.55,0.6354,0.5761,Part B
+Gradient Boosting Classifier,0.56,0.6461,0.5761,Part B
+Gradient Boosting Classifier,0.57,0.659,0.5761,Part B
+Gradient Boosting Classifier,0.58,0.6677,0.5761,Part B
+Gradient Boosting Classifier,0.59,0.6797,0.5761,Part B
+Gradient Boosting Classifier,0.6,0.6922,0.5761,Part B
+Gradient Boosting Classifier,0.61,0.7012,0.5761,Part B
+Gradient Boosting Classifier,0.62,0.7102,0.5761,Part B
+Gradient Boosting Classifier,0.63,0.7191,0.5761,Part B
+Gradient Boosting Classifier,0.64,0.7278,0.5761,Part B
+Gradient Boosting Classifier,0.65,0.741,0.5761,Part B
+Gradient Boosting Classifier,0.66,0.7489,0.5761,Part B
+Gradient Boosting Classifier,0.67,0.758,0.5761,Part B
+Gradient Boosting Classifier,0.68,0.7701,0.5761,Part B
+Gradient Boosting Classifier,0.69,0.7816,0.5761,Part B
+Gradient Boosting Classifier,0.7,0.7965,0.5761,Part B
+Gradient Boosting Classifier,0.71,0.8051,0.5761,Part B
+Gradient Boosting Classifier,0.72,0.8152,0.5761,Part B
+Gradient Boosting Classifier,0.73,0.8228,0.5761,Part B
+Gradient Boosting Classifier,0.74,0.833,0.5761,Part B
+Gradient Boosting Classifier,0.75,0.8481,0.5761,Part B
+Gradient Boosting Classifier,0.76,0.8506,0.5761,Part B
+Gradient Boosting Classifier,0.77,0.8608,0.5761,Part B
+Gradient Boosting Classifier,0.78,0.8722,0.5761,Part B
+Gradient Boosting Classifier,0.79,0.8759,0.5761,Part B
+Gradient Boosting Classifier,0.8,0.8838,0.5761,Part B
+Gradient Boosting Classifier,0.81,0.8896,0.5761,Part B
+Gradient Boosting Classifier,0.82,0.8949,0.5761,Part B
+Gradient Boosting Classifier,0.83,0.8987,0.5761,Part B
+Gradient Boosting Classifier,0.84,0.9089,0.5761,Part B
+Gradient Boosting Classifier,0.85,0.9203,0.5761,Part B
+Gradient Boosting Classifier,0.86,0.9266,0.5761,Part B
+Gradient Boosting Classifier,0.87,0.9266,0.5761,Part B
+Gradient Boosting Classifier,0.88,0.9367,0.5761,Part B
+Gradient Boosting Classifier,0.89,0.9436,0.5761,Part B
+Gradient Boosting Classifier,0.9,0.9506,0.5761,Part B
+Gradient Boosting Classifier,0.91,0.9557,0.5761,Part B
+Gradient Boosting Classifier,0.92,0.9633,0.5761,Part B
+Gradient Boosting Classifier,0.93,0.9671,0.5761,Part B
+Gradient Boosting Classifier,0.94,0.9684,0.5761,Part B
+Gradient Boosting Classifier,0.95,0.9739,0.5761,Part B
+Gradient Boosting Classifier,0.96,0.9785,0.5761,Part B
+Gradient Boosting Classifier,0.97,0.9835,0.5761,Part B
+Gradient Boosting Classifier,0.98,0.9899,0.5761,Part B
+Gradient Boosting Classifier,0.99,0.9987,0.5761,Part B
+Gradient Boosting Classifier,1.0,1.0,0.5761,Part B
+Bagging (Decision Tree),0.0,0.0,0.5739,Part B
+Bagging (Decision Tree),0.01,0.0177,0.5739,Part B
+Bagging (Decision Tree),0.02,0.0443,0.5739,Part B
+Bagging (Decision Tree),0.03,0.0658,0.5739,Part B
+Bagging (Decision Tree),0.04,0.0747,0.5739,Part B
+Bagging (Decision Tree),0.05,0.0911,0.5739,Part B
+Bagging (Decision Tree),0.06,0.1089,0.5739,Part B
+Bagging (Decision Tree),0.07,0.119,0.5739,Part B
+Bagging (Decision Tree),0.08,0.1354,0.5739,Part B
+Bagging (Decision Tree),0.09,0.1418,0.5739,Part B
+Bagging (Decision Tree),0.1,0.1582,0.5739,Part B
+Bagging (Decision Tree),0.11,0.1722,0.5739,Part B
+Bagging (Decision Tree),0.12,0.1823,0.5739,Part B
+Bagging (Decision Tree),0.13,0.198,0.5739,Part B
+Bagging (Decision Tree),0.14,0.2139,0.5739,Part B
+Bagging (Decision Tree),0.15,0.2241,0.5739,Part B
+Bagging (Decision Tree),0.16,0.2397,0.5739,Part B
+Bagging (Decision Tree),0.17,0.2532,0.5739,Part B
+Bagging (Decision Tree),0.18,0.2649,0.5739,Part B
+Bagging (Decision Tree),0.19,0.2861,0.5739,Part B
+Bagging (Decision Tree),0.2,0.2962,0.5739,Part B
+Bagging (Decision Tree),0.21,0.3038,0.5739,Part B
+Bagging (Decision Tree),0.22,0.3152,0.5739,Part B
+Bagging (Decision Tree),0.23,0.3241,0.5739,Part B
+Bagging (Decision Tree),0.24,0.3329,0.5739,Part B
+Bagging (Decision Tree),0.25,0.3367,0.5739,Part B
+Bagging (Decision Tree),0.26,0.3418,0.5739,Part B
+Bagging (Decision Tree),0.27,0.3506,0.5739,Part B
+Bagging (Decision Tree),0.28,0.3544,0.5739,Part B
+Bagging (Decision Tree),0.29,0.3633,0.5739,Part B
+Bagging (Decision Tree),0.3,0.3709,0.5739,Part B
+Bagging (Decision Tree),0.31,0.3772,0.5739,Part B
+Bagging (Decision Tree),0.32,0.3835,0.5739,Part B
+Bagging (Decision Tree),0.33,0.3975,0.5739,Part B
+Bagging (Decision Tree),0.34,0.4127,0.5739,Part B
+Bagging (Decision Tree),0.35,0.4241,0.5739,Part B
+Bagging (Decision Tree),0.36,0.4354,0.5739,Part B
+Bagging (Decision Tree),0.37,0.4506,0.5739,Part B
+Bagging (Decision Tree),0.38,0.4608,0.5739,Part B
+Bagging (Decision Tree),0.39,0.4734,0.5739,Part B
+Bagging (Decision Tree),0.4,0.4785,0.5739,Part B
+Bagging (Decision Tree),0.41,0.4947,0.5739,Part B
+Bagging (Decision Tree),0.42,0.5038,0.5739,Part B
+Bagging (Decision Tree),0.43,0.5177,0.5739,Part B
+Bagging (Decision Tree),0.44,0.5278,0.5739,Part B
+Bagging (Decision Tree),0.45,0.5342,0.5739,Part B
+Bagging (Decision Tree),0.46,0.5494,0.5739,Part B
+Bagging (Decision Tree),0.47,0.5506,0.5739,Part B
+Bagging (Decision Tree),0.48,0.5646,0.5739,Part B
+Bagging (Decision Tree),0.49,0.5759,0.5739,Part B
+Bagging (Decision Tree),0.5,0.5797,0.5739,Part B
+Bagging (Decision Tree),0.51,0.5962,0.5739,Part B
+Bagging (Decision Tree),0.52,0.6127,0.5739,Part B
+Bagging (Decision Tree),0.53,0.6228,0.5739,Part B
+Bagging (Decision Tree),0.54,0.6342,0.5739,Part B
+Bagging (Decision Tree),0.55,0.6443,0.5739,Part B
+Bagging (Decision Tree),0.56,0.6587,0.5739,Part B
+Bagging (Decision Tree),0.57,0.6654,0.5739,Part B
+Bagging (Decision Tree),0.58,0.6772,0.5739,Part B
+Bagging (Decision Tree),0.59,0.6911,0.5739,Part B
+Bagging (Decision Tree),0.6,0.6987,0.5739,Part B
+Bagging (Decision Tree),0.61,0.7114,0.5739,Part B
+Bagging (Decision Tree),0.62,0.7199,0.5739,Part B
+Bagging (Decision Tree),0.63,0.7253,0.5739,Part B
+Bagging (Decision Tree),0.64,0.7316,0.5739,Part B
+Bagging (Decision Tree),0.65,0.7443,0.5739,Part B
+Bagging (Decision Tree),0.66,0.7532,0.5739,Part B
+Bagging (Decision Tree),0.67,0.7709,0.5739,Part B
+Bagging (Decision Tree),0.68,0.7848,0.5739,Part B
+Bagging (Decision Tree),0.69,0.8,0.5739,Part B
+Bagging (Decision Tree),0.7,0.8089,0.5739,Part B
+Bagging (Decision Tree),0.71,0.8165,0.5739,Part B
+Bagging (Decision Tree),0.72,0.8215,0.5739,Part B
+Bagging (Decision Tree),0.73,0.8291,0.5739,Part B
+Bagging (Decision Tree),0.74,0.8316,0.5739,Part B
+Bagging (Decision Tree),0.75,0.8392,0.5739,Part B
+Bagging (Decision Tree),0.76,0.8443,0.5739,Part B
+Bagging (Decision Tree),0.77,0.8544,0.5739,Part B
+Bagging (Decision Tree),0.78,0.8671,0.5739,Part B
+Bagging (Decision Tree),0.79,0.8797,0.5739,Part B
+Bagging (Decision Tree),0.8,0.8861,0.5739,Part B
+Bagging (Decision Tree),0.81,0.8937,0.5739,Part B
+Bagging (Decision Tree),0.82,0.9013,0.5739,Part B
+Bagging (Decision Tree),0.83,0.9076,0.5739,Part B
+Bagging (Decision Tree),0.84,0.9203,0.5739,Part B
+Bagging (Decision Tree),0.85,0.9241,0.5739,Part B
+Bagging (Decision Tree),0.86,0.9291,0.5739,Part B
+Bagging (Decision Tree),0.87,0.9329,0.5739,Part B
+Bagging (Decision Tree),0.88,0.9354,0.5739,Part B
+Bagging (Decision Tree),0.89,0.9367,0.5739,Part B
+Bagging (Decision Tree),0.9,0.9443,0.5739,Part B
+Bagging (Decision Tree),0.91,0.9532,0.5739,Part B
+Bagging (Decision Tree),0.92,0.9595,0.5739,Part B
+Bagging (Decision Tree),0.93,0.962,0.5739,Part B
+Bagging (Decision Tree),0.94,0.9671,0.5739,Part B
+Bagging (Decision Tree),0.95,0.9709,0.5739,Part B
+Bagging (Decision Tree),0.96,0.9785,0.5739,Part B
+Bagging (Decision Tree),0.97,0.9873,0.5739,Part B
+Bagging (Decision Tree),0.98,0.9924,0.5739,Part B
+Bagging (Decision Tree),0.99,0.9962,0.5739,Part B
+Bagging (Decision Tree),1.0,1.0,0.5739,Part B
+MLP Classifier (Neural Network),0.0,0.0,0.5463,Part B
+MLP Classifier (Neural Network),0.01,0.0177,0.5463,Part B
+MLP Classifier (Neural Network),0.02,0.0304,0.5463,Part B
+MLP Classifier (Neural Network),0.03,0.0418,0.5463,Part B
+MLP Classifier (Neural Network),0.04,0.0519,0.5463,Part B
+MLP Classifier (Neural Network),0.05,0.0671,0.5463,Part B
+MLP Classifier (Neural Network),0.06,0.0797,0.5463,Part B
+MLP Classifier (Neural Network),0.07,0.0937,0.5463,Part B
+MLP Classifier (Neural Network),0.08,0.1101,0.5463,Part B
+MLP Classifier (Neural Network),0.09,0.1228,0.5463,Part B
+MLP Classifier (Neural Network),0.1,0.1405,0.5463,Part B
+MLP Classifier (Neural Network),0.11,0.1468,0.5463,Part B
+MLP Classifier (Neural Network),0.12,0.157,0.5463,Part B
+MLP Classifier (Neural Network),0.13,0.1671,0.5463,Part B
+MLP Classifier (Neural Network),0.14,0.1861,0.5463,Part B
+MLP Classifier (Neural Network),0.15,0.1937,0.5463,Part B
+MLP Classifier (Neural Network),0.16,0.2038,0.5463,Part B
+MLP Classifier (Neural Network),0.17,0.2165,0.5463,Part B
+MLP Classifier (Neural Network),0.18,0.2316,0.5463,Part B
+MLP Classifier (Neural Network),0.19,0.238,0.5463,Part B
+MLP Classifier (Neural Network),0.2,0.257,0.5463,Part B
+MLP Classifier (Neural Network),0.21,0.2671,0.5463,Part B
+MLP Classifier (Neural Network),0.22,0.2759,0.5463,Part B
+MLP Classifier (Neural Network),0.23,0.2848,0.5463,Part B
+MLP Classifier (Neural Network),0.24,0.2873,0.5463,Part B
+MLP Classifier (Neural Network),0.25,0.3063,0.5463,Part B
+MLP Classifier (Neural Network),0.26,0.3215,0.5463,Part B
+MLP Classifier (Neural Network),0.27,0.3342,0.5463,Part B
+MLP Classifier (Neural Network),0.28,0.3481,0.5463,Part B
+MLP Classifier (Neural Network),0.29,0.3506,0.5463,Part B
+MLP Classifier (Neural Network),0.3,0.3595,0.5463,Part B
+MLP Classifier (Neural Network),0.31,0.3734,0.5463,Part B
+MLP Classifier (Neural Network),0.32,0.3848,0.5463,Part B
+MLP Classifier (Neural Network),0.33,0.3987,0.5463,Part B
+MLP Classifier (Neural Network),0.34,0.4076,0.5463,Part B
+MLP Classifier (Neural Network),0.35,0.4177,0.5463,Part B
+MLP Classifier (Neural Network),0.36,0.4266,0.5463,Part B
+MLP Classifier (Neural Network),0.37,0.4392,0.5463,Part B
+MLP Classifier (Neural Network),0.38,0.4519,0.5463,Part B
+MLP Classifier (Neural Network),0.39,0.457,0.5463,Part B
+MLP Classifier (Neural Network),0.4,0.4671,0.5463,Part B
+MLP Classifier (Neural Network),0.41,0.4747,0.5463,Part B
+MLP Classifier (Neural Network),0.42,0.4848,0.5463,Part B
+MLP Classifier (Neural Network),0.43,0.4937,0.5463,Part B
+MLP Classifier (Neural Network),0.44,0.5076,0.5463,Part B
+MLP Classifier (Neural Network),0.45,0.5139,0.5463,Part B
+MLP Classifier (Neural Network),0.46,0.5215,0.5463,Part B
+MLP Classifier (Neural Network),0.47,0.5278,0.5463,Part B
+MLP Classifier (Neural Network),0.48,0.5456,0.5463,Part B
+MLP Classifier (Neural Network),0.49,0.5671,0.5463,Part B
+MLP Classifier (Neural Network),0.5,0.5785,0.5463,Part B
+MLP Classifier (Neural Network),0.51,0.5835,0.5463,Part B
+MLP Classifier (Neural Network),0.52,0.5924,0.5463,Part B
+MLP Classifier (Neural Network),0.53,0.6025,0.5463,Part B
+MLP Classifier (Neural Network),0.54,0.6127,0.5463,Part B
+MLP Classifier (Neural Network),0.55,0.6266,0.5463,Part B
+MLP Classifier (Neural Network),0.56,0.6367,0.5463,Part B
+MLP Classifier (Neural Network),0.57,0.6405,0.5463,Part B
+MLP Classifier (Neural Network),0.58,0.6456,0.5463,Part B
+MLP Classifier (Neural Network),0.59,0.6506,0.5463,Part B
+MLP Classifier (Neural Network),0.6,0.6608,0.5463,Part B
+MLP Classifier (Neural Network),0.61,0.6658,0.5463,Part B
+MLP Classifier (Neural Network),0.62,0.6823,0.5463,Part B
+MLP Classifier (Neural Network),0.63,0.6899,0.5463,Part B
+MLP Classifier (Neural Network),0.64,0.6987,0.5463,Part B
+MLP Classifier (Neural Network),0.65,0.7114,0.5463,Part B
+MLP Classifier (Neural Network),0.66,0.7215,0.5463,Part B
+MLP Classifier (Neural Network),0.67,0.7278,0.5463,Part B
+MLP Classifier (Neural Network),0.68,0.7329,0.5463,Part B
+MLP Classifier (Neural Network),0.69,0.7392,0.5463,Part B
+MLP Classifier (Neural Network),0.7,0.7481,0.5463,Part B
+MLP Classifier (Neural Network),0.71,0.7557,0.5463,Part B
+MLP Classifier (Neural Network),0.72,0.7608,0.5463,Part B
+MLP Classifier (Neural Network),0.73,0.7709,0.5463,Part B
+MLP Classifier (Neural Network),0.74,0.781,0.5463,Part B
+MLP Classifier (Neural Network),0.75,0.7911,0.5463,Part B
+MLP Classifier (Neural Network),0.76,0.8063,0.5463,Part B
+MLP Classifier (Neural Network),0.77,0.8139,0.5463,Part B
+MLP Classifier (Neural Network),0.78,0.8241,0.5463,Part B
+MLP Classifier (Neural Network),0.79,0.8329,0.5463,Part B
+MLP Classifier (Neural Network),0.8,0.8392,0.5463,Part B
+MLP Classifier (Neural Network),0.81,0.8443,0.5463,Part B
+MLP Classifier (Neural Network),0.82,0.8506,0.5463,Part B
+MLP Classifier (Neural Network),0.83,0.862,0.5463,Part B
+MLP Classifier (Neural Network),0.84,0.8671,0.5463,Part B
+MLP Classifier (Neural Network),0.85,0.8722,0.5463,Part B
+MLP Classifier (Neural Network),0.86,0.8772,0.5463,Part B
+MLP Classifier (Neural Network),0.87,0.8848,0.5463,Part B
+MLP Classifier (Neural Network),0.88,0.8949,0.5463,Part B
+MLP Classifier (Neural Network),0.89,0.9089,0.5463,Part B
+MLP Classifier (Neural Network),0.9,0.9203,0.5463,Part B
+MLP Classifier (Neural Network),0.91,0.9241,0.5463,Part B
+MLP Classifier (Neural Network),0.92,0.9354,0.5463,Part B
+MLP Classifier (Neural Network),0.93,0.9456,0.5463,Part B
+MLP Classifier (Neural Network),0.94,0.9544,0.5463,Part B
+MLP Classifier (Neural Network),0.95,0.9595,0.5463,Part B
+MLP Classifier (Neural Network),0.96,0.9772,0.5463,Part B
+MLP Classifier (Neural Network),0.97,0.9823,0.5463,Part B
+MLP Classifier (Neural Network),0.98,0.9899,0.5463,Part B
+MLP Classifier (Neural Network),0.99,0.9962,0.5463,Part B
+MLP Classifier (Neural Network),1.0,1.0,0.5463,Part B
+Production Hybrid Model,0.0,0.0,0.887,Production
+Production Hybrid Model,0.01,0.3443,0.887,Production
+Production Hybrid Model,0.02,0.4215,0.887,Production
+Production Hybrid Model,0.03,0.4899,0.887,Production
+Production Hybrid Model,0.04,0.538,0.887,Production
+Production Hybrid Model,0.05,0.5671,0.887,Production
+Production Hybrid Model,0.06,0.6089,0.887,Production
+Production Hybrid Model,0.07,0.6316,0.887,Production
+Production Hybrid Model,0.08,0.6532,0.887,Production
+Production Hybrid Model,0.09,0.6671,0.887,Production
+Production Hybrid Model,0.1,0.6797,0.887,Production
+Production Hybrid Model,0.11,0.6924,0.887,Production
+Production Hybrid Model,0.12,0.7025,0.887,Production
+Production Hybrid Model,0.13,0.719,0.887,Production
+Production Hybrid Model,0.14,0.7392,0.887,Production
+Production Hybrid Model,0.15,0.7494,0.887,Production
+Production Hybrid Model,0.16,0.762,0.887,Production
+Production Hybrid Model,0.17,0.7722,0.887,Production
+Production Hybrid Model,0.18,0.7835,0.887,Production
+Production Hybrid Model,0.19,0.7911,0.887,Production
+Production Hybrid Model,0.2,0.8013,0.887,Production
+Production Hybrid Model,0.21,0.8101,0.887,Production
+Production Hybrid Model,0.22,0.819,0.887,Production
+Production Hybrid Model,0.23,0.8241,0.887,Production
+Production Hybrid Model,0.24,0.8329,0.887,Production
+Production Hybrid Model,0.25,0.8418,0.887,Production
+Production Hybrid Model,0.26,0.8506,0.887,Production
+Production Hybrid Model,0.27,0.8544,0.887,Production
+Production Hybrid Model,0.28,0.8595,0.887,Production
+Production Hybrid Model,0.29,0.8709,0.887,Production
+Production Hybrid Model,0.3,0.8797,0.887,Production
+Production Hybrid Model,0.31,0.8873,0.887,Production
+Production Hybrid Model,0.32,0.8937,0.887,Production
+Production Hybrid Model,0.33,0.8962,0.887,Production
+Production Hybrid Model,0.34,0.9038,0.887,Production
+Production Hybrid Model,0.35,0.9114,0.887,Production
+Production Hybrid Model,0.36,0.9139,0.887,Production
+Production Hybrid Model,0.37,0.9139,0.887,Production
+Production Hybrid Model,0.38,0.9139,0.887,Production
+Production Hybrid Model,0.39,0.9165,0.887,Production
+Production Hybrid Model,0.4,0.919,0.887,Production
+Production Hybrid Model,0.41,0.9241,0.887,Production
+Production Hybrid Model,0.42,0.9291,0.887,Production
+Production Hybrid Model,0.43,0.9316,0.887,Production
+Production Hybrid Model,0.44,0.9316,0.887,Production
+Production Hybrid Model,0.45,0.9342,0.887,Production
+Production Hybrid Model,0.46,0.938,0.887,Production
+Production Hybrid Model,0.47,0.9392,0.887,Production
+Production Hybrid Model,0.48,0.9443,0.887,Production
+Production Hybrid Model,0.49,0.9468,0.887,Production
+Production Hybrid Model,0.5,0.9506,0.887,Production
+Production Hybrid Model,0.51,0.9544,0.887,Production
+Production Hybrid Model,0.52,0.9557,0.887,Production
+Production Hybrid Model,0.53,0.957,0.887,Production
+Production Hybrid Model,0.54,0.9582,0.887,Production
+Production Hybrid Model,0.55,0.9595,0.887,Production
+Production Hybrid Model,0.56,0.9646,0.887,Production
+Production Hybrid Model,0.57,0.9646,0.887,Production
+Production Hybrid Model,0.58,0.9671,0.887,Production
+Production Hybrid Model,0.59,0.9684,0.887,Production
+Production Hybrid Model,0.6,0.9696,0.887,Production
+Production Hybrid Model,0.61,0.9722,0.887,Production
+Production Hybrid Model,0.62,0.9734,0.887,Production
+Production Hybrid Model,0.63,0.9734,0.887,Production
+Production Hybrid Model,0.64,0.9734,0.887,Production
+Production Hybrid Model,0.65,0.9759,0.887,Production
+Production Hybrid Model,0.66,0.9772,0.887,Production
+Production Hybrid Model,0.67,0.9785,0.887,Production
+Production Hybrid Model,0.68,0.9797,0.887,Production
+Production Hybrid Model,0.69,0.9797,0.887,Production
+Production Hybrid Model,0.7,0.9797,0.887,Production
+Production Hybrid Model,0.71,0.9797,0.887,Production
+Production Hybrid Model,0.72,0.9797,0.887,Production
+Production Hybrid Model,0.73,0.9797,0.887,Production
+Production Hybrid Model,0.74,0.9823,0.887,Production
+Production Hybrid Model,0.75,0.9835,0.887,Production
+Production Hybrid Model,0.76,0.9848,0.887,Production
+Production Hybrid Model,0.77,0.9861,0.887,Production
+Production Hybrid Model,0.78,0.9861,0.887,Production
+Production Hybrid Model,0.79,0.9861,0.887,Production
+Production Hybrid Model,0.8,0.9873,0.887,Production
+Production Hybrid Model,0.81,0.9886,0.887,Production
+Production Hybrid Model,0.82,0.9886,0.887,Production
+Production Hybrid Model,0.83,0.9886,0.887,Production
+Production Hybrid Model,0.84,0.9911,0.887,Production
+Production Hybrid Model,0.85,0.9911,0.887,Production
+Production Hybrid Model,0.86,0.9911,0.887,Production
+Production Hybrid Model,0.87,0.9911,0.887,Production
+Production Hybrid Model,0.88,0.9924,0.887,Production
+Production Hybrid Model,0.89,0.9937,0.887,Production
+Production Hybrid Model,0.9,0.9949,0.887,Production
+Production Hybrid Model,0.91,0.9949,0.887,Production
+Production Hybrid Model,0.92,0.9975,0.887,Production
+Production Hybrid Model,0.93,0.9987,0.887,Production
+Production Hybrid Model,0.94,0.9987,0.887,Production
+Production Hybrid Model,0.95,0.9987,0.887,Production
+Production Hybrid Model,0.96,1.0,0.887,Production
+Production Hybrid Model,0.97,1.0,0.887,Production
+Production Hybrid Model,0.98,1.0,0.887,Production
+Production Hybrid Model,0.99,1.0,0.887,Production
+Production Hybrid Model,1.0,1.0,0.887,Production
