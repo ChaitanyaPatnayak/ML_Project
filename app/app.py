@@ -219,32 +219,63 @@ def load_trained_model():
     return None
 
 
+# Direct explicit artifact paths for each algorithm to prevent accidental substitution or fallback
+MODEL_ARTIFACT_MAP: dict[str, Path] = {
+    "Logistic Regression": ROOT_DIR / "models" / "capstone_classifiers" / "logistic_regression.joblib",
+    "K-Nearest Neighbors (KNN)": ROOT_DIR / "models" / "capstone_classifiers" / "k_nearest_neighbors.joblib",
+    "Gaussian Naive Bayes": ROOT_DIR / "models" / "capstone_classifiers" / "gaussian_naive_bayes.joblib",
+    "Decision Tree Classifier": ROOT_DIR / "models" / "capstone_classifiers" / "decision_tree.joblib",
+    "Support Vector Classifier (SVC)": ROOT_DIR / "models" / "capstone_classifiers" / "support_vector_classifier.joblib",
+    "Random Forest Classifier": ROOT_DIR / "models" / "capstone_classifiers" / "random_forest.joblib",
+    "AdaBoost Classifier": ROOT_DIR / "models" / "capstone_classifiers" / "adaboost.joblib",
+    "Gradient Boosting Classifier": ROOT_DIR / "models" / "capstone_classifiers" / "gradient_boosting.joblib",
+    "Bagging (Decision Tree)": ROOT_DIR / "models" / "capstone_classifiers" / "bagging_decision_tree.joblib",
+    "MLP Classifier (Neural Network)": ROOT_DIR / "models" / "capstone_classifiers" / "mlp_classifier.joblib",
+    "🏆 Production Hybrid Model (TF-IDF + Syntactic)": ROOT_DIR / "models" / "final_classifier.joblib",
+}
+
+
 @st.cache_resource
-def load_all_models_registry():
+def load_all_models_registry() -> dict:
     reg_path = ROOT_DIR / "models" / "classifiers_registry.joblib"
     if reg_path.exists():
         try:
             return joblib.load(reg_path)
-        except Exception:
-            pass
+        except Exception as e:
+            st.warning(f"Warning: Could not load registry metadata: {e}")
     return {}
 
 
 @st.cache_resource
-def load_model_payload(model_key: str):
-    if model_key == "🏆 Production Hybrid Model (TF-IDF + Syntactic)":
-        p = ROOT_DIR / "models" / "final_classifier.joblib"
-        if p.exists():
-            return joblib.load(p)
-    reg = load_all_models_registry()
-    if model_key in reg:
-        p = ROOT_DIR / reg[model_key]["artifact_path"]
-        if p.exists():
-            return joblib.load(p)
-    fallback_p = ROOT_DIR / "models" / "final_classifier.joblib"
-    if fallback_p.exists():
-        return joblib.load(fallback_p)
-    return None
+def load_model_payload(model_key: str) -> dict:
+    """Load the dedicated fitted model artifact for the selected algorithm.
+    Enforces strict model isolation: NEVER silently substitutes another model or fallback.
+    """
+    if model_key in MODEL_ARTIFACT_MAP:
+        p = MODEL_ARTIFACT_MAP[model_key]
+    else:
+        reg = load_all_models_registry()
+        if model_key in reg:
+            p = ROOT_DIR / reg[model_key]["artifact_path"]
+        else:
+            raise KeyError(f"Unknown algorithm selection: '{model_key}'. Allowed: {list(MODEL_ARTIFACT_MAP.keys())}")
+
+    if not p.exists():
+        raise FileNotFoundError(f"Model artifact file for '{model_key}' does not exist at '{p}'.")
+
+    payload = joblib.load(p)
+    if not isinstance(payload, dict) or "pipeline" not in payload:
+        raise ValueError(f"Corrupt or invalid model payload for '{model_key}' at '{p}'.")
+
+    # Strict identity check to guarantee no accidental cross-model reuse
+    expected_name = "Hybrid Text & Syntactic Classifier (Production)" if "Hybrid" in model_key else model_key
+    loaded_name = payload.get("model_name", "")
+    if loaded_name != expected_name:
+        raise ValueError(
+            f"Model identity mismatch! Requested '{model_key}', but artifact at '{p}' contains '{loaded_name}'."
+        )
+
+    return payload
 
 
 reports = load_reports()
@@ -1085,12 +1116,14 @@ elif navigation == "⚡ Prediction Playground":
         if not comment_input.strip():
             st.warning("Please enter valid comment text before running moderation.")
         else:
-            # Load selected model payload
-            selected_payload = load_model_payload(selected_algo)
+            # Load selected model payload with strict isolation
+            try:
+                selected_payload = load_model_payload(selected_algo)
+            except Exception as err:
+                st.error(f"❌ Error loading model artifact for **{selected_algo}**: {err}")
+                selected_payload = None
 
-            if not selected_payload:
-                st.error(f"Could not load artifact for {selected_algo}. Please check models directory.")
-            else:
+            if selected_payload:
                 active_pipeline = selected_payload["pipeline"]
                 active_cols = selected_payload.get("feature_columns", ALL_FEATURES)
                 df_single = extract_single_comment_features(comment_input, selected_tod, active_cols)
@@ -1202,7 +1235,12 @@ elif navigation == "⚡ Prediction Playground":
 
                     comparison_rows = []
                     for name in algo_catalog:
-                        m_payload = load_model_payload(name)
+                        try:
+                            m_payload = load_model_payload(name)
+                        except Exception as err:
+                            st.warning(f"Could not load {name}: {err}")
+                            m_payload = None
+
                         if m_payload:
                             m_cols = m_payload.get("feature_columns", ALL_FEATURES)
                             m_single = extract_single_comment_features(comment_input, selected_tod, m_cols)

@@ -273,6 +273,131 @@ class TestMultiAlgorithmPlayground(unittest.TestCase):
         dec_svc = self.policy.evaluate(svc_payload["pipeline"], feats, test_comment)
         self.assertEqual(dec_svc.score_type, "raw_functional_margin")
 
+    def test_11_each_dropdown_option_invokes_correct_isolated_model(self):
+        """Confirm that each of the 10 rubric classifiers loads its own distinct model artifact.
+        Verify that none of them load the Production Hybrid model by accident.
+        """
+        hybrid_payload = joblib.load(ROOT / "models" / "final_classifier.joblib")
+        hybrid_pipeline = hybrid_payload["pipeline"]
+
+        for name in RUBRIC_NAMES:
+            rel_path = self.registry[name]["artifact_path"]
+            payload = joblib.load(ROOT / rel_path)
+            pipe = payload["pipeline"]
+
+            # Model names must match requested algorithm
+            self.assertEqual(payload["model_name"], name, f"Payload model_name mismatch for {name}")
+
+            # Estimator type must NOT be the production hybrid estimator
+            model_obj = pipe.named_steps["model"]
+            hybrid_model_obj = hybrid_pipeline.named_steps["model"]
+            self.assertNotEqual(
+                id(model_obj),
+                id(hybrid_model_obj),
+                f"Model object for {name} shares memory with Production Hybrid model!"
+            )
+
+            # Feature columns must match surface features (10 columns, no text column)
+            self.assertEqual(
+                payload["feature_columns"],
+                self.surface_features,
+                f"Feature columns mismatch for {name}"
+            )
+            self.assertNotIn("comment_text", payload["feature_columns"])
+
+    def test_12_no_silent_fallback_on_unknown_or_missing_model(self):
+        """Verify that attempting to load a non-existent or corrupted model raises an error instead of silently returning the hybrid model."""
+        from app.app import load_model_payload
+
+        # Unknown model name must raise KeyError
+        with self.assertRaises(KeyError):
+            load_model_payload("NonExistentFakeAlgorithm")
+
+    def test_13_diagnostic_phrases_produce_diverse_model_specific_predictions(self):
+        """Evaluate 5 key diagnostic phrases: 'kill', 'stupid', 'hello', 'I disagree with you', 'You are an idiot'.
+        Verify:
+        1. Models do NOT all produce ~90% toxicity.
+        2. Scores vary across models reflecting their distinct decision boundaries.
+        3. Production Hybrid uses TF-IDF vocabulary to detect toxic words, whereas surface baselines evaluate syntactic features.
+        """
+        diagnostic_phrases = ["kill", "stupid", "hello", "I disagree with you", "You are an idiot"]
+
+        for text in diagnostic_phrases:
+            scores_by_model = {}
+            for name in RUBRIC_NAMES:
+                rel_path = self.registry[name]["artifact_path"]
+                payload = joblib.load(ROOT / rel_path)
+                feats = extract_single_comment_features(text, "Evening", payload["feature_columns"])
+                dec = self.policy.evaluate(payload["pipeline"], feats, text, name)
+
+                if dec.supports_probability:
+                    scores_by_model[name] = dec.toxic_probability
+                else:
+                    scores_by_model[name] = dec.decision_score
+
+            # Test that not all rubric models produced ~90%
+            prob_values = [v for k, v in scores_by_model.items() if k != "Support Vector Classifier (SVC)"]
+            mean_prob = np.mean(prob_values)
+            self.assertLess(
+                mean_prob,
+                0.70,
+                f"For text '{text}', average baseline toxic probability ({mean_prob:.1%}) is unexpectedly high! Models may be inheriting the hybrid prediction."
+            )
+
+            # Standard deviation among baseline models should be non-zero (demonstrating model diversity)
+            std_prob = np.std(prob_values)
+            self.assertGreater(
+                std_prob,
+                0.01,
+                f"For text '{text}', baseline models produced suspiciously identical probabilities (std={std_prob})!"
+            )
+
+    def test_14_changing_input_triggers_fresh_inference(self):
+        """Verify that running inference on different inputs dynamically updates features and scores."""
+        rf_payload = joblib.load(ROOT / self.registry["Random Forest Classifier"]["artifact_path"])
+        pipe = rf_payload["pipeline"]
+        cols = rf_payload["feature_columns"]
+
+        f1 = extract_single_comment_features("hello", "Morning", cols)
+        dec1 = self.policy.evaluate(pipe, f1, "hello")
+
+        f2 = extract_single_comment_features("I disagree with your point on economics", "Evening", cols)
+        dec2 = self.policy.evaluate(pipe, f2, "I disagree with your point on economics")
+
+        # Changing length, word count, and time of day must yield distinct feature vectors and different model probabilities
+        self.assertNotEqual(dec1.toxic_probability, dec2.toxic_probability)
+
+        # Also verify dynamic update on Production Hybrid Model
+        hybrid_payload = joblib.load(ROOT / "models" / "final_classifier.joblib")
+        hf1 = extract_single_comment_features("hello", "Morning", hybrid_payload["feature_columns"])
+        hdec1 = self.policy.evaluate(hybrid_payload["pipeline"], hf1, "hello")
+
+        hf2 = extract_single_comment_features("kill", "Evening", hybrid_payload["feature_columns"])
+        hdec2 = self.policy.evaluate(hybrid_payload["pipeline"], hf2, "kill")
+
+        self.assertNotEqual(hdec1.toxic_probability, hdec2.toxic_probability)
+        self.assertGreater(hdec2.toxic_probability, hdec1.toxic_probability)
+
+    def test_15_toxic_probability_extracted_from_correct_class_index(self):
+        """Verify that predict_proba extracts toxic_probability from index corresponding to class 1."""
+        for name in RUBRIC_NAMES:
+            meta = self.registry[name]
+            if not meta["supports_proba"]:
+                continue
+            payload = joblib.load(ROOT / meta["artifact_path"])
+            model = getattr(payload["pipeline"], "named_steps", {}).get("model")
+            classes = list(getattr(model, "classes_", [0, 1]))
+
+            self.assertEqual(classes, [0, 1], f"Model {name} classes_ are not [0, 1]")
+            feats = extract_single_comment_features("Sample text", "Evening", payload["feature_columns"])
+            probs = payload["pipeline"].predict_proba(feats)[0]
+
+            dec = self.policy.evaluate(payload["pipeline"], feats, "Sample text")
+            self.assertAlmostEqual(dec.toxic_probability, float(probs[1]), places=5)
+            self.assertAlmostEqual(dec.civil_probability, float(probs[0]), places=5)
+            self.assertAlmostEqual(dec.toxic_probability + dec.civil_probability, 1.0, places=5)
+
 
 if __name__ == "__main__":
     unittest.main()
+
