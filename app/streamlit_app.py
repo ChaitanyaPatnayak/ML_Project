@@ -577,6 +577,38 @@ elif navigation == "🧪 Classification Lab":
                 unsafe_allow_html=True,
             )
 
+        st.markdown("---")
+        st.subheader("🖼️ Evaluated Classification Visual Gallery (5 Mandatory Graphs)")
+        st.caption("Publication-quality evaluation diagnostics computed directly from held-out test predictions (N = 10,000 comments).")
+
+        c_vis_col1, c_vis_col2 = st.columns(2)
+        with c_vis_col1:
+            st.markdown("#### 1. 10-Classifier Performance Benchmark")
+            p1 = ROOT_DIR / "assets" / "classification" / "01_model_performance_comparison.png"
+            if p1.exists():
+                st.image(str(p1), use_container_width=True)
+
+            st.markdown("#### 3. Confusion Matrix Heatmaps (Selected Models)")
+            p3 = ROOT_DIR / "assets" / "classification" / "03_confusion_matrix_selected_model.png"
+            if p3.exists():
+                st.image(str(p3), use_container_width=True)
+
+            st.markdown("#### 5. Precision–Recall Curves (Imbalanced Data)")
+            p5 = ROOT_DIR / "assets" / "classification" / "05_precision_recall_curves.png"
+            if p5.exists():
+                st.image(str(p5), use_container_width=True)
+
+        with c_vis_col2:
+            st.markdown("#### 2. Toxic-Class Precision vs Recall Trade-Off")
+            p2 = ROOT_DIR / "assets" / "classification" / "02_precision_recall_tradeoff.png"
+            if p2.exists():
+                st.image(str(p2), use_container_width=True)
+
+            st.markdown("#### 4. Multi-Model ROC Curves")
+            p4 = ROOT_DIR / "assets" / "classification" / "04_roc_curves.png"
+            if p4.exists():
+                st.image(str(p4), use_container_width=True)
+
 
 # ==========================================
 # 3. CLUSTERING STUDIO
@@ -629,30 +661,43 @@ elif navigation == "🌌 Clustering Studio":
         )
 
     with tab_vis:
-        st.subheader("🖼️ Generated Clustering Plots")
+        st.subheader("🖼️ Generated Clustering Plots (5 Rubric Visualizations)")
         vis_col1, vis_col2 = st.columns(2)
 
         with vis_col1:
             st.markdown("#### 1. K-Means Elbow Curve (Inertia vs $k$)")
-            elbow_img = ROOT_DIR / "assets" / "elbow_curve.png"
+            elbow_img = ROOT_DIR / "assets" / "clustering" / "01_kmeans_elbow_curve.png"
+            if not elbow_img.exists():
+                elbow_img = ROOT_DIR / "assets" / "elbow_curve.png"
             if elbow_img.exists():
                 st.image(str(elbow_img), use_container_width=True)
 
-            st.markdown("#### 3. PCA 2D Cluster Visualizations")
-            pca_img = ROOT_DIR / "assets" / "pca_clusters.png"
+            st.markdown("#### 3. PCA 2D Cluster Visualizations (K-Means vs Ward)")
+            pca_img = ROOT_DIR / "assets" / "clustering" / "03_pca_clusters_2d.png"
+            if not pca_img.exists():
+                pca_img = ROOT_DIR / "assets" / "pca_clusters.png"
             if pca_img.exists():
                 st.image(str(pca_img), use_container_width=True)
 
-        with vis_col2:
-            st.markdown("#### 2. Hierarchical Clustering Dendrograms")
-            dendro_img = ROOT_DIR / "assets" / "dendrograms.png"
-            if dendro_img.exists():
-                st.image(str(dendro_img), use_container_width=True)
-
-            st.markdown("#### 4. t-SNE 2D Manifold Visualization (K-Means)")
-            tsne_img = ROOT_DIR / "assets" / "tsne_kmeans.png"
+            st.markdown("#### 5. t-SNE 2D Manifold Visualization (K-Means)")
+            tsne_img = ROOT_DIR / "assets" / "clustering" / "05_tsne_clusters_2d.png"
+            if not tsne_img.exists():
+                tsne_img = ROOT_DIR / "assets" / "tsne_kmeans.png"
             if tsne_img.exists():
                 st.image(str(tsne_img), use_container_width=True)
+
+        with vis_col2:
+            st.markdown("#### 2. Clustering Quality Metrics Comparison")
+            metrics_img = ROOT_DIR / "assets" / "clustering" / "02_clustering_metrics_comparison.png"
+            if metrics_img.exists():
+                st.image(str(metrics_img), use_container_width=True)
+
+            st.markdown("#### 4. Hierarchical Clustering Dendrograms (3 Linkages)")
+            dendro_img = ROOT_DIR / "assets" / "clustering" / "04_hierarchical_dendrograms.png"
+            if not dendro_img.exists():
+                dendro_img = ROOT_DIR / "assets" / "dendrograms.png"
+            if dendro_img.exists():
+                st.image(str(dendro_img), use_container_width=True)
 
     with tab_profiles:
         st.subheader("👥 Cluster Profiles & Post-Fit Toxicity Validation")

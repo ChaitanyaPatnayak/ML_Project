@@ -99,6 +99,27 @@ To eliminate contradictory UI states (such as declaring a 45% borderline comment
 3. **Tier 3 — Automated Quarantine ($P(\text{Toxic}) \ge 0.70$)**:
    - *Decision Action*: `QUARANTINED: HIGH RISK`
    - *Routing*: Automatically quarantined for violating safety guidelines.
+- **Uncalibrated Model Handling**: Non-probabilistic linear classifiers (such as Linear SVC with uncalibrated margins $w^Tx+b$) are routed to Tier 2 rather than granted auto-approval, preventing false safety assurances from uncalibrated surface baselines.
+
+### Evaluated Classification Visual Gallery (5 Mandatory Graphs)
+
+All figures generated directly from held-out test predictions ($N = 10,000$ comments, 80/20 stratified split):
+
+1. **[01_model_performance_comparison.png](assets/classification/01_model_performance_comparison.png)**:
+   - *What it shows*: Grouped bar chart comparing Accuracy, Precision (Toxic), Recall (Toxic), and Weighted F1 across all 10 rubric-mandated algorithms.
+   - *Key takeaway*: Naive 92% accuracy masks 0% recall in unweighted models; ensemble methods (Bagging and Tuned RF) restore detection of the 7.9% minority toxic class.
+2. **[02_precision_recall_tradeoff.png](assets/classification/02_precision_recall_tradeoff.png)**:
+   - *What it shows*: Scatter plot of Toxic-Class Precision vs Recall for all 10 models + Tuned RF + Production Hybrid Model.
+   - *Key takeaway*: Illustrates the safety-critical Pareto frontier. In moderation, false negatives are catastrophic; Bagging reaches 63.9% recall and the Hybrid pipeline reaches 61.1% recall with 45.7% precision.
+3. **[03_confusion_matrix_selected_model.png](assets/classification/03_confusion_matrix_selected_model.png)**:
+   - *What it shows*: Side-by-side confusion matrix heatmaps comparing the selected baseline (Bagging Decision Tree) against the flagship Production Hybrid Model.
+   - *Key takeaway*: Displays exact TN, FP, FN, and TP counts and proportions on 10,000 held-out test comments (9,210 Civil, 790 Toxic).
+4. **[04_roc_curves.png](assets/classification/04_roc_curves.png)**:
+   - *What it shows*: Receiver Operating Characteristic curves with True Positive Rate vs False Positive Rate for all candidate models with continuous outputs (probabilities or decision margin scores).
+   - *Key takeaway*: Reports verified ROC-AUCs, showing the jump from ~0.55–0.57 on surface features to **0.8870** on the hybrid text pipeline.
+5. **[05_precision_recall_curves.png](assets/classification/05_precision_recall_curves.png)**:
+   - *What it shows*: Precision–Recall curves plotted against the horizontal no-skill prevalence prior ($y = 0.079$).
+   - *Key takeaway*: Demonstrates the true discriminative power of the models over an imbalanced baseline where ROC-AUC can be overly optimistic.
 
 ---
 
@@ -117,11 +138,25 @@ We engineered structural features (`comment_length`, `word_count`, `uppercase_ra
 
 *\*Note on Chaining*: Complete and Average linkages exhibit artificially high Silhouette scores (>0.73) due to severe **hierarchical chaining**: they isolate tiny outlier pairs (or single points) as separate clusters while merging >98% of observations into one giant cluster. **Ward's linkage** minimizes variance at each merge, yielding balanced spherical clusters and a superior Calinski-Harabasz index (582.55 vs 121.17).
 
-### Key Diagnostic Visualizations
-1. **Elbow Curve**: Evaluated inertia for $k \in [2, 10]$; sharp deceleration in inertia loss confirms the optimal knee at **$k = 5$** (inertia = 18,295.2). Saved in `assets/elbow_curve.png`.
-2. **Dendrograms**: Hierarchical trees for Ward, Complete, and Average linkages saved in `assets/dendrograms.png`.
-3. **PCA 2D Projections**: Visualizes ~38.1% of feature variance, showing dense conversational clusters with outward rays for shouting/punctuation. Saved in `assets/pca_clusters.png`.
-4. **t-SNE 2D Manifold**: Non-linear perplexity embedding verifying isolated localized micro-clusters for aggressive punctuation. Saved in `assets/tsne_kmeans.png`.
+### Evaluated Clustering Visual Gallery (5 Mandatory Graphs)
+
+All figures generated from the standardized unsupervised feature space ($N = 3,000$ comments, seed = 42, zero labels):
+
+1. **[01_kmeans_elbow_curve.png](assets/clustering/01_kmeans_elbow_curve.png)**:
+   - *What it shows*: Within-Cluster Sum of Squares (Inertia/WCSS) vs $k \in [2, 10]$ along with a second panel showing marginal inertia reduction ($\Delta\text{WCSS}$).
+   - *Key takeaway*: Confirms the distinct elbow knee at **$k = 5$** (inertia = 18,295.2), after which marginal variance explained drops below 10%.
+2. **[02_clustering_metrics_comparison.png](assets/clustering/02_clustering_metrics_comparison.png)**:
+   - *What it shows*: Three aligned subplots comparing Silhouette Score ($\uparrow$), Davies-Bouldin Index ($\downarrow$), and Calinski-Harabasz Index ($\uparrow$) across K-Means and all three hierarchical linkages.
+   - *Key takeaway*: Prevents misleading single-axis scaling and documents why Ward's linkage is mathematically preferred despite inflated Silhouette scores from chained linkages.
+3. **[03_pca_clusters_2d.png](assets/clustering/03_pca_clusters_2d.png)**:
+   - *What it shows*: 2D PCA projection of the unsupervised feature space coloured by cluster ID, comparing K-Means ($k=5$) against Agglomerative Ward ($k=5$).
+   - *Key takeaway*: Explains 38.1% of feature variance (PC1 = 24.5%, PC2 = 13.6%), confirming dense conversational clusters with ray-like projections for shouting and punctuation anomalies. PCA is strictly for visualization.
+4. **[04_hierarchical_dendrograms.png](assets/clustering/04_hierarchical_dendrograms.png)**:
+   - *What it shows*: Truncated tree dendrograms ($N = 250$ representative sample) comparing Ward, Complete, and Average linkages.
+   - *Key takeaway*: Visually illustrates the tree topology, contrasting Ward's balanced partitions against Complete/Average single-element chaining merges.
+5. **[05_tsne_clusters_2d.png](assets/clustering/05_tsne_clusters_2d.png)**:
+   - *What it shows*: 2D t-SNE non-linear manifold projection ($N = 1,500$ sample, perplexity = 35, seed = 42) coloured by K-Means cluster assignments.
+   - *Key takeaway*: Unveils localized micro-clusters, including isolated peripheral islands corresponding to aggressive punctuation and shouting comments.
 
 ---
 
