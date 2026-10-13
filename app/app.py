@@ -532,26 +532,49 @@ elif navigation == "🧪 Classification Lab":
         if "roc_curves" in reports and not reports["roc_curves"].empty:
             df_roc = reports["roc_curves"].copy()
             all_roc_models = list(df_roc["Model"].unique())
-            default_roc = [
+            key_benchmarks = [
                 "Production Hybrid Model",
                 "Bagging (Decision Tree)",
                 "Random Forest Classifier",
-                "Gradient Boosting Classifier",
                 "Support Vector Classifier (SVC)",
             ]
-            selected_roc_models = st.multiselect(
-                "🎯 Select Models to Overlay on ROC Curve:",
-                options=all_roc_models,
-                default=[m for m in default_roc if m in all_roc_models],
-                help="Toggle classifiers to compare their ROC curves and Area Under Curve (AUC) metrics."
-            )
+
+            col_mode, _ = st.columns([3, 1])
+            with col_mode:
+                view_mode = st.radio(
+                    "🎯 Model Selection View:",
+                    options=["⭐ Key Benchmarks (Top 4)", "🌐 All 11 Classifiers", "🎛️ Custom Selection"],
+                    horizontal=True,
+                    index=0,
+                    help="Switch between clean benchmark comparison, all models, or custom selection without UI crowding.",
+                )
+
+            if view_mode == "⭐ Key Benchmarks (Top 4)":
+                selected_roc_models = [m for m in key_benchmarks if m in all_roc_models]
+                st.caption(f"Displaying **{len(selected_roc_models)} core benchmark models** for high clarity. Switch to 'All 11 Classifiers' to overlay all models.")
+            elif view_mode == "🌐 All 11 Classifiers":
+                selected_roc_models = all_roc_models
+                st.caption(f"Displaying **all {len(selected_roc_models)} classifiers** (10 rubric models + Flagship Hybrid Model).")
+            else:
+                selected_roc_models = st.multiselect(
+                    "Select Models to Overlay:",
+                    options=all_roc_models,
+                    default=[m for m in key_benchmarks if m in all_roc_models],
+                    help="Select classifiers to display on the ROC curve.",
+                )
 
             if selected_roc_models:
                 df_roc_filtered = df_roc[df_roc["Model"].isin(selected_roc_models)].copy()
                 model_auc_map = df_roc_filtered.groupby("Model")["ROC_AUC"].first().to_dict()
                 df_roc_filtered["Model_Legend"] = df_roc_filtered["Model"].apply(
-                    lambda m: f"{m} (AUC = {model_auc_map.get(m, 0.0):.3f})"
+                    lambda m: f"{m} (AUC={model_auc_map.get(m, 0.0):.3f})"
                 )
+
+                color_palette = [
+                    "#10B981", "#8B5CF6", "#06B6D4", "#F59E0B", "#F43F5E",
+                    "#38BDF8", "#EC4899", "#A855F7", "#14B8A6", "#EAB308",
+                    "#6366F1", "#94A3B8"
+                ]
 
                 fig_roc = px.line(
                     df_roc_filtered,
@@ -563,15 +586,46 @@ elif navigation == "🧪 Classification Lab":
                         "TPR": "True Positive Rate (Sensitivity / Recall)",
                         "Model_Legend": "Model (AUC Score)",
                     },
-                    color_discrete_sequence=["#10B981", "#8B5CF6", "#06B6D4", "#F59E0B", "#F43F5E", "#38BDF8", "#EC4899", "#EAB308"],
+                    color_discrete_sequence=color_palette,
                 )
                 fig_roc.add_shape(
                     type="line", line=dict(dash="dash", color="#64748B", width=1.5),
                     x0=0, y0=0, x1=1, y1=1
                 )
-                dark_plotly_layout(fig_roc, "Interactive ROC-AUC Curves Across Evaluated Classifiers", height=480)
-                fig_roc.update_xaxes(range=[-0.01, 1.01])
-                fig_roc.update_yaxes(range=[-0.01, 1.01])
+                dark_plotly_layout(fig_roc, "", height=520)
+                fig_roc.update_layout(
+                    title=dict(
+                        text="ROC-AUC Curves Across Evaluated Classifiers",
+                        font=dict(family="Inter", size=15, color="#F8FAFC"),
+                        x=0.02,
+                        y=0.96,
+                        xanchor="left",
+                        yanchor="top",
+                    ),
+                    legend=dict(
+                        title=dict(text="<b>Model (AUC)</b>", font=dict(size=11, color="#CBD5E1")),
+                        orientation="v",
+                        yanchor="top",
+                        y=0.95,
+                        xanchor="left",
+                        x=1.02,
+                        font=dict(size=10, family="Inter", color="#94A3B8"),
+                        bgcolor="rgba(19, 27, 46, 0.8)",
+                        bordercolor="rgba(139, 92, 246, 0.25)",
+                        borderwidth=1,
+                    ),
+                    margin=dict(l=55, r=260, t=65, b=50),
+                )
+                fig_roc.update_xaxes(
+                    title_text="False Positive Rate (1 - Specificity)",
+                    range=[-0.01, 1.01],
+                    gridcolor="rgba(148, 163, 184, 0.1)",
+                )
+                fig_roc.update_yaxes(
+                    title_text="True Positive Rate (Sensitivity / Recall)",
+                    range=[-0.01, 1.01],
+                    gridcolor="rgba(148, 163, 184, 0.1)",
+                )
                 st.plotly_chart(fig_roc, use_container_width=True)
 
                 best_auc_m = max(model_auc_map, key=model_auc_map.get)
@@ -579,6 +633,8 @@ elif navigation == "🧪 Classification Lab":
                     f"🏆 **Highest Discriminative Ability**: `{best_auc_m}` achieves an **AUC of {model_auc_map[best_auc_m]:.4f}**, "
                     "demonstrating strong capability to rank toxic content above civil comments across all threshold operating points."
                 )
+            else:
+                st.warning("⚠️ Please select at least one model to display the ROC curve.")
 
         st.markdown("---")
 
