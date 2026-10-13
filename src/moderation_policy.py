@@ -30,6 +30,8 @@ class ModerationDecision:
     decision_score: float | None = None
     algorithm_name: str = ""
     algorithm_track: str = ""
+    score_type: str = "calibrated_probability"
+    margin_orientation: str = "N/A"
 
 
 class ModerationPolicy:
@@ -78,6 +80,8 @@ class ModerationPolicy:
                 decision_score=None,
                 algorithm_name=algorithm_name,
                 algorithm_track=algorithm_track,
+                score_type="calibrated_probability",
+                margin_orientation="N/A",
             )
 
         # 1. Resolve model object & classes_
@@ -90,6 +94,9 @@ class ModerationPolicy:
         has_proba = hasattr(pipeline, "predict_proba") or hasattr(model, "predict_proba")
         has_decision_fn = hasattr(pipeline, "decision_function") or hasattr(model, "decision_function")
 
+        score_type = "calibrated_probability"
+        margin_orientation = "N/A"
+
         if has_proba:
             try:
                 probs = pipeline.predict_proba(features_df)[0]
@@ -99,22 +106,41 @@ class ModerationPolicy:
                 civil_prob = float(np.clip(civil_prob, 0.0, 1.0))
                 supports_probability = True
                 decision_score = None
+                score_type = "calibrated_probability"
+                margin_orientation = "N/A"
 
-                # Classification label
-                predicted_class = 1 if toxic_prob >= self.classification_threshold else 0
+                # Classification label: use model's actual predict() output if available, else threshold
+                if hasattr(pipeline, "predict") or hasattr(model, "predict"):
+                    try:
+                        pred_fn = getattr(pipeline, "predict", getattr(model, "predict", None))
+                        predicted_class = int(pred_fn(features_df)[0])
+                    except Exception:
+                        predicted_class = 1 if toxic_prob >= self.classification_threshold else 0
+                else:
+                    predicted_class = 1 if toxic_prob >= self.classification_threshold else 0
                 predicted_label = "Toxic" if predicted_class == 1 else "Civil"
 
                 # Uncertainty score: 1.0 at 0.50 (maximum ambiguity), 0.0 at 0.0 or 1.0
                 uncertainty = float(np.clip(1.0 - 2.0 * abs(toxic_prob - 0.50), 0.0, 1.0))
 
-                # Enforce Tri-Tier Moderation Decision
+                # Enforce Tri-Tier Moderation Decision with Invariant Guard
                 if toxic_prob < self.threshold_approve:
-                    action = "APPROVED"
-                    routing = "Tier 1: Instant Auto-Approval"
-                    explanation = (
-                        f"Toxicity risk is low ({toxic_prob:.1%} < {self.threshold_approve:.0%}). "
-                        "Safe for immediate real-time publication."
-                    )
+                    if predicted_class == 1:
+                        # Hard invariant guard: predicted_class == 1 must NEVER be auto-approved
+                        action = "HELD FOR REVIEW"
+                        routing = "Tier 2: Secondary Review Queue"
+                        explanation = (
+                            f"Model predicted Class 1 (Toxic) while probability ({toxic_prob:.1%}) "
+                            f"fell below approval threshold ({self.threshold_approve:.0%}). "
+                            "Held for review to prevent contradictory auto-approval."
+                        )
+                    else:
+                        action = "APPROVED"
+                        routing = "Tier 1: Instant Auto-Approval"
+                        explanation = (
+                            f"Toxicity risk is low ({toxic_prob:.1%} < {self.threshold_approve:.0%}). "
+                            "Safe for immediate real-time publication."
+                        )
                 elif toxic_prob < self.threshold_quarantine:
                     action = "HELD FOR REVIEW"
                     routing = "Tier 2: Secondary Review Queue"
@@ -136,55 +162,72 @@ class ModerationPolicy:
                 has_proba = False
 
         if not has_proba:
-            # Fallback for models without predict_proba (e.g. Linear SVC with probability=False)
+            # Fallback for models without predict_proba (e.g. Linear SVC)
             supports_probability = False
             pred_raw = int(pipeline.predict(features_df)[0])
             predicted_class = pred_raw
             predicted_label = "Toxic" if predicted_class == 1 else "Civil"
+            toxic_prob = None
+            civil_prob = None
 
             if has_decision_fn:
-                decision_score = float(pipeline.decision_function(features_df)[0])
-                # In margin distance: 0 is decision boundary, negative is civil, positive is toxic
-                # Uncertainty is high when distance is close to 0
-                margin_dist = abs(decision_score)
-                uncertainty = float(np.clip(1.0 - min(margin_dist, 1.0), 0.0, 1.0))
-                toxic_prob = None
-                civil_prob = None
+                raw_score = float(pipeline.decision_function(features_df)[0])
+                decision_score = raw_score
+                score_type = "raw_functional_margin"
 
-                if decision_score < -0.20:
-                    action = "APPROVED"
-                    routing = "Tier 1: Instant Auto-Approval"
-                    explanation = (
-                        f"Classifier decision score ({decision_score:.3f}) indicates sample lies comfortably "
-                        "in the civil half-space (Margin < -0.20)."
-                    )
-                elif decision_score <= 0.20:
-                    action = "HELD FOR REVIEW"
-                    routing = "Tier 2: Secondary Review Queue"
-                    explanation = (
-                        f"Classifier decision score ({decision_score:.3f}) lies near the separating hyperplane "
-                        "[-0.20, +0.20]. Escalated to secondary review."
-                    )
+                # Class orientation check: verify whether positive score corresponds to Toxic (class 1)
+                # In scikit-learn binary classification, positive scores correspond to classes_[1]
+                if len(classes) >= 2 and classes[1] == 1:
+                    margin_toxic = raw_score
+                    margin_orientation = "positive_toxic_negative_civil"
+                elif len(classes) >= 2 and classes[1] == 0:
+                    margin_toxic = -raw_score
+                    margin_orientation = "positive_civil_negative_toxic"
                 else:
+                    margin_toxic = raw_score
+                    margin_orientation = "default_positive_toxic"
+
+                # Uncertainty calculation: uncalibrated baseline is conservatively uncertain
+                uncertainty = float(np.clip(1.0 - min(abs(raw_score), 1.0) * 0.5, 0.50, 1.0))
+
+                # Conservative review policy (Requirement 9):
+                # When oriented margin places sample in toxic half-space (>= 0) or predicted_class == 1:
+                if margin_toxic >= 0.0 or predicted_class == 1:
                     action = "QUARANTINED"
                     routing = "Tier 3: Automated Quarantine"
                     explanation = (
-                        f"Classifier decision score ({decision_score:.3f}) indicates sample lies in the "
-                        "toxic half-space (Margin > +0.20)."
+                        f"Classifier decision score ({decision_score:+.3f}) places sample in the toxic half-space "
+                        f"(oriented margin >= 0.000). Flagged for safety violation and quarantined."
+                    )
+                else:
+                    # Sample lies on the negative margin side, but the classifier uses uncalibrated functional margins
+                    # (w^T x + b) without probability calibration or text token awareness.
+                    # Under safety-critical moderation policy, uncalibrated negative margins cannot grant
+                    # automatic publication without human verification.
+                    action = "HELD FOR REVIEW"
+                    routing = "Tier 2: Conservative Review Queue (Uncalibrated Baseline)"
+                    explanation = (
+                        f"Classifier decision score ({decision_score:+.3f}) maps to Class 0 (Civil), but the model uses "
+                        "uncalibrated functional margins (w^T x + b) without probability calibration or text token features. "
+                        "Under the conservative moderation policy, uncalibrated negative margins are held for secondary "
+                        "review rather than auto-approved."
                     )
             else:
                 decision_score = None
-                toxic_prob = 1.0 if predicted_class == 1 else 0.0
-                civil_prob = 1.0 - toxic_prob
-                uncertainty = 0.50
-                if predicted_class == 0:
-                    action = "APPROVED"
-                    routing = "Tier 1: Instant Auto-Approval"
-                    explanation = "Discrete model predicted Class 0 (Civil)."
-                else:
+                score_type = "discrete_prediction"
+                margin_orientation = "N/A"
+                uncertainty = 0.80
+                if predicted_class == 1:
                     action = "QUARANTINED"
                     routing = "Tier 3: Automated Quarantine"
-                    explanation = "Discrete model predicted Class 1 (Toxic)."
+                    explanation = "Discrete model predicted Class 1 (Toxic). Flagged for automated quarantine."
+                else:
+                    action = "HELD FOR REVIEW"
+                    routing = "Tier 2: Conservative Review Queue (Discrete Model)"
+                    explanation = (
+                        "Discrete model predicted Class 0 (Civil), but lacks calibrated confidence scores. "
+                        "Held for secondary review under conservative moderation policy."
+                    )
 
         features_dict = features_df.to_dict(orient="records")[0] if len(features_df) > 0 else {}
 
@@ -206,4 +249,6 @@ class ModerationPolicy:
             decision_score=decision_score,
             algorithm_name=algorithm_name,
             algorithm_track=algorithm_track,
+            score_type=score_type,
+            margin_orientation=margin_orientation,
         )

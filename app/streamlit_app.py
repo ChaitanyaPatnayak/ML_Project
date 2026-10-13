@@ -888,7 +888,7 @@ elif navigation == "⚡ Prediction Playground":
         - **Classification Cutoff:** `50.0%` ($P \ge 50\%$ maps to binary class 1)
         - **Auto-Quarantine Threshold ($\tau_{\text{quarantine}}$):** `70.0%` (Comments with $P(\text{Toxic}) \ge 70\%$ are quarantined)
         - **Borderline Ambiguity Window:** `[30.0%, 70.0%)` (Strictly held for secondary review; **NEVER APPROVED**)
-        - **Non-Probability Classifiers (e.g. Linear SVC):** Evaluated against margin distance thresholds ($\text{Margin} < -0.20 \to \text{Approved}$, $[-0.20, +0.20] \to \text{Held for Review}$, $> +0.20 \to \text{Quarantined}$).
+        - **Non-Probability Classifiers (e.g. Linear SVC):** Operates on raw functional margins ($w^T x + b$). Positive margins ($\ge 0.000$) map to quarantine. Uncalibrated negative margins ($< 0.000$) are conservatively held for **Secondary Review** rather than auto-approved, preventing false safety assurances from uncalibrated baseline models lacking text representation.
         """
         )
 
