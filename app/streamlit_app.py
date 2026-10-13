@@ -31,7 +31,7 @@ from src.moderation_policy import ModerationDecision, ModerationPolicy
 
 # Page configuration
 st.set_page_config(
-    page_title="AI Sentinel | Content Moderation Lab",
+    page_title="Comment Shield | Content Moderation Lab",
     page_icon="🛡️",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -285,7 +285,7 @@ policy = ModerationPolicy(threshold_approve=0.30, threshold_quarantine=0.70, cla
 
 # Sidebar Navigation & Meta
 with st.sidebar:
-    st.markdown("### 🛡️ AI Sentinel")
+    st.markdown("### 🛡️ Comment Shield")
     st.markdown(
         "<span class='badge badge-violet'>23CSE301</span><span class='badge badge-cyan'>Review 2</span>",
         unsafe_allow_html=True,

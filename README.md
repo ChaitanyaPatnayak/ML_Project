@@ -1,4 +1,4 @@
-# AI Sentinel: Real-Time Content Moderator
+# Comment Shield: Real-Time Content Moderator
 ### 23CSE301 Machine Learning Capstone Project — Review 2 Submission
 **Authors / Contributors:**
 - **Chaitanya** ([@ChaitanyaPatnayak](https://github.com/ChaitanyaPatnayak))
