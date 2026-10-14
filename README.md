@@ -273,19 +273,8 @@ The project is structured for 1-click cloud deployment:
 
 ---
 
-## 10. Rubric Compliance Verification (23CSE301 Review 2)
 
-| Rubric Component | Allocated Marks | Compliance Status | Key Verified Deliverable |
-| :--- | :---: | :---: | :--- |
-| **Classification Part B** | **6 Marks** | **100% Complete** | 5 required Part B models trained, 10-model consolidated table, 5-fold CV, GridSearchCV tuning with verified Recall improvement (+56.08%), ROC-AUC (0.5801), and justified selection. |
-| **Clustering Track** | **8 Marks** | **100% Complete** | K-Means with Elbow curve ($k=2..10$), Agglomerative Hierarchical clustering comparing 3 linkages, dendrograms, Silhouette, Davies-Bouldin, and Calinski-Harabasz metrics, PCA 2D and t-SNE 2D plots. Zero labels used during fitting. |
-| **Pipeline Integration** | **3 Marks** | **100% Complete** | Modular `src/` package, leakage-free pipelines, preserved Review 1 regression track, all notebooks executed top-to-bottom without error. |
-| **UI & Application** | **Bonus** | **100% Complete** | Full-stack Streamlit dashboard with midnight/violet aesthetic, 6 interactive views, real-time prediction playground, and CSV report exports. |
-| **Presentation & Viva** | **8 Marks** | **100% Complete** | Editable slide deck in `assets/Review2_Presentation.pptx`, metric trade-off justification, and viva defense answers documented. |
-
----
-
-## 11. Collaborator Verification
+## 10. Collaborator Verification
 
 In accordance with course team requirements, repository collaborator access was audited via the GitHub API:
 - `ChaitanyaPatnayak` (Owner / Admin) — Verified
@@ -294,7 +283,7 @@ In accordance with course team requirements, repository collaborator access was 
 
 ---
 
-## 12. Academic Integrity & AI Usage Citation
+## 11. Academic Integrity & AI Usage Citation
 
 - Generative AI assistance was utilized for code scaffolding, interactive UI component styling, and documentation layout.
 - All machine learning algorithms, cross-validation runs, grid search optimizations, clustering metrics, PCA/t-SNE projections, and model evaluations were executed and validated directly on local hardware using real data partitions without fabricated results.
