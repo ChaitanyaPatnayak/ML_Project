@@ -19,12 +19,21 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
+from sklearn.cluster import AgglomerativeClustering, KMeans
+from sklearn.decomposition import PCA
+from sklearn.metrics import (
+    calinski_harabasz_score,
+    davies_bouldin_score,
+    silhouette_score,
+)
+from sklearn.preprocessing import StandardScaler
 
 from src.features import (
     ALL_FEATURES,
     HYBRID_FEATURES,
     NUMERICAL_FEATURES,
     extract_single_comment_features,
+    extract_text_features,
     get_current_time_category,
 )
 from src.moderation_policy import ModerationDecision, ModerationPolicy
@@ -276,6 +285,145 @@ def load_model_payload(model_key: str) -> dict:
         )
 
     return payload
+
+
+# ==========================================
+# CLUSTERING DATA & INFERENCE ENGINE
+# ==========================================
+@st.cache_data
+def get_clustering_base_data():
+    """Load and preprocess unsupervised feature space (N=3,000 comments strictly without labels)."""
+    data_path = ROOT_DIR / "data" / "train_sample_50k.csv"
+    if not data_path.exists():
+        return None
+    df = pd.read_csv(data_path)
+    df_feat = extract_text_features(df, text_column="comment_text")
+    X_raw = df_feat[NUMERICAL_FEATURES].copy()
+
+    # Reproducible sample of 3,000 comments
+    rng = np.random.default_rng(42)
+    sample_size = min(3000, len(X_raw))
+    sub_idx = rng.choice(X_raw.index, size=sample_size, replace=False)
+
+    df_sample = df.loc[sub_idx].copy().reset_index(drop=True)
+    X_sub = X_raw.loc[sub_idx].copy().reset_index(drop=True)
+
+    for col in ["comment_length", "word_count"]:
+        X_sub[col] = np.log1p(X_sub[col])
+
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X_sub)
+
+    pca = PCA(n_components=2, random_state=42)
+    X_pca = pca.fit_transform(X_scaled)
+    pca_var = pca.explained_variance_ratio_ * 100.0
+
+    return {
+        "X_scaled": X_scaled,
+        "X_pca": X_pca,
+        "df_sample": df_sample,
+        "scaler": scaler,
+        "pca": pca,
+        "pca_var": pca_var,
+        "feature_cols": NUMERICAL_FEATURES,
+    }
+
+
+@st.cache_data
+def compute_clustering_model(algo_name: str, k: int):
+    """Fit selected clustering algorithm on X_scaled and return labels, metrics, and centroids."""
+    base = get_clustering_base_data()
+    if not base:
+        return None
+
+    X_scaled = base["X_scaled"]
+
+    if algo_name == "K-Means":
+        model = KMeans(n_clusters=k, n_init=10, random_state=42)
+        labels = model.fit_predict(X_scaled)
+        centroids = model.cluster_centers_
+        inertia = float(model.inertia_)
+    elif "Ward" in algo_name:
+        model = AgglomerativeClustering(n_clusters=k, linkage="ward")
+        labels = model.fit_predict(X_scaled)
+        centroids = np.array([X_scaled[labels == c].mean(axis=0) if np.sum(labels == c) > 0 else np.zeros(X_scaled.shape[1]) for c in range(k)])
+        inertia = None
+    elif "Complete" in algo_name:
+        model = AgglomerativeClustering(n_clusters=k, linkage="complete")
+        labels = model.fit_predict(X_scaled)
+        centroids = np.array([X_scaled[labels == c].mean(axis=0) if np.sum(labels == c) > 0 else np.zeros(X_scaled.shape[1]) for c in range(k)])
+        inertia = None
+    elif "Average" in algo_name:
+        model = AgglomerativeClustering(n_clusters=k, linkage="average")
+        labels = model.fit_predict(X_scaled)
+        centroids = np.array([X_scaled[labels == c].mean(axis=0) if np.sum(labels == c) > 0 else np.zeros(X_scaled.shape[1]) for c in range(k)])
+        inertia = None
+    else:
+        raise ValueError(f"Unknown clustering algorithm: {algo_name}")
+
+    # Compute internal validation metrics
+    sil = float(silhouette_score(X_scaled, labels))
+    db = float(davies_bouldin_score(X_scaled, labels))
+    ch = float(calinski_harabasz_score(X_scaled, labels))
+
+    cluster_counts = pd.Series(labels).value_counts().sort_index().to_dict()
+
+    return {
+        "algo_name": algo_name,
+        "k": k,
+        "labels": labels,
+        "centroids": centroids,
+        "silhouette": sil,
+        "davies_bouldin": db,
+        "calinski_harabasz": ch,
+        "inertia": inertia,
+        "cluster_counts": cluster_counts,
+        "X_pca": base["X_pca"],
+        "pca_var": base["pca_var"],
+        "df_sample": base["df_sample"],
+        "scaler": base["scaler"],
+        "pca": base["pca"],
+    }
+
+
+@st.cache_data
+def compute_all_clustering_comparison(k: int):
+    """Compute comparison metrics across all 4 clustering methods at selected k."""
+    base = get_clustering_base_data()
+    if not base:
+        return pd.DataFrame()
+
+    X_scaled = base["X_scaled"]
+    methods = [
+        ("K-Means", "None (Centroid Distance)", KMeans(n_clusters=k, n_init=10, random_state=42)),
+        ("Agglomerative Clustering — Ward Linkage", "Ward (Min Variance)", AgglomerativeClustering(n_clusters=k, linkage="ward")),
+        ("Agglomerative Clustering — Complete Linkage", "Complete (Max Distance)", AgglomerativeClustering(n_clusters=k, linkage="complete")),
+        ("Agglomerative Clustering — Average Linkage", "Average (Mean Distance)", AgglomerativeClustering(n_clusters=k, linkage="average")),
+    ]
+
+    rows = []
+    for name, link_desc, model in methods:
+        labels = model.fit_predict(X_scaled)
+        sil = float(silhouette_score(X_scaled, labels))
+        db = float(davies_bouldin_score(X_scaled, labels))
+        ch = float(calinski_harabasz_score(X_scaled, labels))
+
+        counts = pd.Series(labels).value_counts()
+        max_pct = (counts.iloc[0] / len(labels)) * 100.0
+        is_chained = max_pct > 85.0
+        status = "⚠️ Severe Chaining" if is_chained else "✅ Balanced Partition"
+
+        rows.append({
+            "Clustering Method": name,
+            "Linkage Type": link_desc,
+            "Silhouette Score (↑)": sil,
+            "Davies-Bouldin Index (↓)": db,
+            "Calinski-Harabasz Index (↑)": ch,
+            "Largest Cluster Share": f"{max_pct:.1f}%",
+            "Partition Health": status,
+        })
+
+    return pd.DataFrame(rows)
 
 
 reports = load_reports()
@@ -963,322 +1111,662 @@ elif navigation == "🔍 Dataset Explorer":
 elif navigation == "⚡ Prediction Playground":
     st.title("⚡ Prediction Playground — Multi-Algorithm Lab")
     st.markdown(
-        "Interactive toxicity evaluation laboratory featuring all **10 Capstone Rubric Classification Algorithms** "
-        "plus the **Production Hybrid Pipeline**."
+        "Interactive evaluation laboratory featuring both **Supervised Classification** (10 Rubric Classifiers + Production Hybrid) "
+        "and **Unsupervised Clustering** (4 Formulations) for comprehensive behavioral analysis."
     )
 
-    # 1. Model Selection Dropdown
-    algo_catalog = {
-        # Classification Part A
-        "Logistic Regression": {
-            "track": "Part A (Review 1)",
-            "supports_proba": True,
-            "desc": "Linear log-odds classifier with L2 regularization.",
-        },
-        "K-Nearest Neighbors (KNN)": {
-            "track": "Part A (Review 1)",
-            "supports_proba": True,
-            "desc": "Non-parametric instance classifier (k=5 nearest Euclidean neighbors).",
-        },
-        "Gaussian Naive Bayes": {
-            "track": "Part A (Review 1)",
-            "supports_proba": True,
-            "desc": "Probabilistic Bayesian classifier with Gaussian feature likelihoods.",
-        },
-        "Decision Tree Classifier": {
-            "track": "Part A (Review 1)",
-            "supports_proba": True,
-            "desc": "Recursive binary partition tree minimizing Gini impurity (max depth 6).",
-        },
-        "Support Vector Classifier (SVC)": {
-            "track": "Part A (Review 1)",
-            "supports_proba": False,
-            "desc": "Linear maximal-margin separating hyperplane. Outputs geometric margin distance.",
-        },
-        # Classification Part B
-        "Random Forest Classifier": {
-            "track": "Part B (Review 2)",
-            "supports_proba": True,
-            "desc": "Ensemble of 120 decorrelated decision trees with balanced bootstrap sampling.",
-        },
-        "AdaBoost Classifier": {
-            "track": "Part B (Review 2)",
-            "supports_proba": True,
-            "desc": "Adaptive boosting ensemble adjusting sample weights sequentially.",
-        },
-        "Gradient Boosting Classifier": {
-            "track": "Part B (Review 2)",
-            "supports_proba": True,
-            "desc": "Stage-wise additive decision trees minimizing deviance via gradient descent.",
-        },
-        "Bagging (Decision Tree)": {
-            "track": "Part B (Review 2)",
-            "supports_proba": True,
-            "desc": "Bootstrap aggregating ensemble of 60 balanced depth-6 decision trees.",
-        },
-        "MLP Classifier (Neural Network)": {
-            "track": "Part B (Review 2)",
-            "supports_proba": True,
-            "desc": "Multi-layer perceptron neural network (64, 32 units) with ReLU activations.",
-        },
-        # Production
-        "🏆 Production Hybrid Model (TF-IDF + Syntactic)": {
-            "track": "Production Engine",
-            "supports_proba": True,
-            "desc": "35k TF-IDF word/char n-grams + 9 surface features under class-balanced loss.",
-        },
-    }
-
-    col_algo_sel, col_mode_sel = st.columns([3, 1])
-    with col_algo_sel:
-        selected_algo = st.selectbox(
-            "🤖 Select Classification Algorithm:",
-            options=list(algo_catalog.keys()),
-            index=0,
-            help="Select any of the 10 rubric-mandated algorithms to execute live inference with its actual trained model.",
-        )
-    with col_mode_sel:
-        compare_all_mode = st.checkbox(
-            "⚡ Compare All 10 Models",
-            value=False,
-            help="Run this comment through all 10 algorithms simultaneously and display a side-by-side comparison.",
-        )
-
-    # Active Algorithm Information Card
-    algo_meta = algo_catalog[selected_algo]
-    track_badge_class = (
-        "badge-violet" if "Part A" in algo_meta["track"]
-        else "badge-cyan" if "Part B" in algo_meta["track"]
-        else "badge-emerald"
+    playground_task = st.radio(
+        "🎯 Select Machine Learning Task:",
+        ["🛡️ Supervised Classification (11 Models)", "🌌 Unsupervised Clustering (4 Algorithms)"],
+        horizontal=True,
+        help="Switch between supervised classification moderation and unsupervised structural pattern clustering.",
     )
 
-    st.markdown(
-        f"""
-    <div style="background: #131B2E; border: 1px solid rgba(139, 92, 246, 0.25); border-radius: 12px; padding: 14px 18px; margin-bottom: 16px;">
-        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;">
-            <div>
-                <span class="badge {track_badge_class}">{algo_meta["track"]}</span>
-                <b style="color: #F8FAFC; font-size: 1.05rem;">{selected_algo}</b>
-                <span style="color: #94A3B8; font-size: 0.9rem; margin-left: 10px;">— {algo_meta["desc"]}</span>
-            </div>
-            <div style="font-size: 0.82rem; color: #38BDF8; font-family: 'JetBrains Mono', monospace;">
-                Output: {"Calibrated Probability P(Toxic)" if algo_meta["supports_proba"] else "Decision Margin Score (Hyperplane Distance)"}
+    if playground_task.startswith("🛡️"):
+        # 1. Model Selection Dropdown
+        algo_catalog = {
+            # Classification Part A
+            "Logistic Regression": {
+                "track": "Part A (Review 1)",
+                "supports_proba": True,
+                "desc": "Linear log-odds classifier with L2 regularization.",
+            },
+            "K-Nearest Neighbors (KNN)": {
+                "track": "Part A (Review 1)",
+                "supports_proba": True,
+                "desc": "Non-parametric instance classifier (k=5 nearest Euclidean neighbors).",
+            },
+            "Gaussian Naive Bayes": {
+                "track": "Part A (Review 1)",
+                "supports_proba": True,
+                "desc": "Probabilistic Bayesian classifier with Gaussian feature likelihoods.",
+            },
+            "Decision Tree Classifier": {
+                "track": "Part A (Review 1)",
+                "supports_proba": True,
+                "desc": "Recursive binary partition tree minimizing Gini impurity (max depth 6).",
+            },
+            "Support Vector Classifier (SVC)": {
+                "track": "Part A (Review 1)",
+                "supports_proba": False,
+                "desc": "Linear maximal-margin separating hyperplane. Outputs geometric margin distance.",
+            },
+            # Classification Part B
+            "Random Forest Classifier": {
+                "track": "Part B (Review 2)",
+                "supports_proba": True,
+                "desc": "Ensemble of 120 decorrelated decision trees with balanced bootstrap sampling.",
+            },
+            "AdaBoost Classifier": {
+                "track": "Part B (Review 2)",
+                "supports_proba": True,
+                "desc": "Adaptive boosting ensemble adjusting sample weights sequentially.",
+            },
+            "Gradient Boosting Classifier": {
+                "track": "Part B (Review 2)",
+                "supports_proba": True,
+                "desc": "Stage-wise additive decision trees minimizing deviance via gradient descent.",
+            },
+            "Bagging (Decision Tree)": {
+                "track": "Part B (Review 2)",
+                "supports_proba": True,
+                "desc": "Bootstrap aggregating ensemble of 60 balanced depth-6 decision trees.",
+            },
+            "MLP Classifier (Neural Network)": {
+                "track": "Part B (Review 2)",
+                "supports_proba": True,
+                "desc": "Multi-layer perceptron neural network (64, 32 units) with ReLU activations.",
+            },
+            # Production
+            "🏆 Production Hybrid Model (TF-IDF + Syntactic)": {
+                "track": "Production Engine",
+                "supports_proba": True,
+                "desc": "35k TF-IDF word/char n-grams + 9 surface features under class-balanced loss.",
+            },
+        }
+
+        col_algo_sel, col_mode_sel = st.columns([3, 1])
+        with col_algo_sel:
+            selected_algo = st.selectbox(
+                "🤖 Select Classification Algorithm:",
+                options=list(algo_catalog.keys()),
+                index=0,
+                help="Select any of the 10 rubric-mandated algorithms to execute live inference with its actual trained model.",
+            )
+        with col_mode_sel:
+            compare_all_mode = st.checkbox(
+                "⚡ Compare All 10 Models",
+                value=False,
+                help="Run this comment through all 10 algorithms simultaneously and display a side-by-side comparison.",
+            )
+
+        # Active Algorithm Information Card
+        algo_meta = algo_catalog[selected_algo]
+        track_badge_class = (
+            "badge-violet" if "Part A" in algo_meta["track"]
+            else "badge-cyan" if "Part B" in algo_meta["track"]
+            else "badge-emerald"
+        )
+
+        st.markdown(
+            f"""
+        <div style="background: #131B2E; border: 1px solid rgba(139, 92, 246, 0.25); border-radius: 12px; padding: 14px 18px; margin-bottom: 16px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+                <div>
+                    <span class="badge {track_badge_class}">{algo_meta["track"]}</span>
+                    <b style="color: #F8FAFC; font-size: 1.05rem;">{selected_algo}</b>
+                    <span style="color: #94A3B8; font-size: 0.9rem; margin-left: 10px;">— {algo_meta["desc"]}</span>
+                </div>
+                <div style="font-size: 0.82rem; color: #38BDF8; font-family: 'JetBrains Mono', monospace;">
+                    Output: {"Calibrated Probability P(Toxic)" if algo_meta["supports_proba"] else "Decision Margin Score (Hyperplane Distance)"}
+                </div>
             </div>
         </div>
-    </div>
-    """,
-        unsafe_allow_html=True,
-    )
+        """,
+            unsafe_allow_html=True,
+        )
 
-    # Policy threshold expander
-    with st.expander("⚙️ Decision Threshold Policy & Policy Invariants", expanded=False):
+        # Policy threshold expander
+        with st.expander("⚙️ Decision Threshold Policy & Policy Invariants", expanded=False):
+            st.markdown(
+                r"""
+            - **Auto-Approve Threshold ($\tau_{\text{approve}}$):** `30.0%` (Only comments with $P(\text{Toxic}) < 30\%$ are auto-approved)
+            - **Classification Cutoff:** `50.0%` ($P \ge 50\%$ maps to binary class 1)
+            - **Auto-Quarantine Threshold ($\tau_{\text{quarantine}}$):** `70.0%` (Comments with $P(\text{Toxic}) \ge 70\%$ are quarantined)
+            - **Borderline Ambiguity Window:** `[30.0%, 70.0%)` (Strictly held for secondary review; **NEVER APPROVED**)
+            - **Non-Probability Classifiers (e.g. Linear SVC):** Operates on raw functional margins ($w^T x + b$). Positive margins ($\ge 0.000$) map to quarantine. Uncalibrated negative margins ($< 0.000$) are conservatively held for **Secondary Review** rather than auto-approved, preventing false safety assurances from uncalibrated baseline models lacking text representation.
+            """
+            )
+
+        # Benchmark presets
+        presets = {
+            "Select an example...": "",
+            "Borderline Admonition (Bug Case)": "Mind your fucking Language",
+            "Severe Hostile Attack": "Shut your ugly mouth you disgusting pig and get lost.",
+            "Civil Disagreement": "I respectfully disagree with your conclusion regarding tax policy, though your point on tariffs is well argued.",
+            "Benign Shouting (High Caps)": "CONGRATULATIONS ON PASSING YOUR EXAMS BROTHER I AM SO PROUD OF YOU!!!!",
+            "Colloquial / Enthusiastic Profanity": "Holy shit I cannot believe that actually worked",
+            "Neutral Observation": "The weather today has been unusually calm for mid-October.",
+        }
+
+        col_preset, col_tod = st.columns([3, 1])
+        with col_preset:
+            selected_preset = st.selectbox("Quick Benchmark Presets:", list(presets.keys()))
+        with col_tod:
+            selected_tod = st.selectbox(
+                "Time of Day:",
+                ["Morning", "Afternoon", "Evening", "Night", "Unknown"],
+                index=["Morning", "Afternoon", "Evening", "Night", "Unknown"].index(get_current_time_category()),
+            )
+
+        default_text = presets[selected_preset] if selected_preset != "Select an example..." else ""
+        comment_input = st.text_area(
+            "Enter Comment Text for Moderation:",
+            value=default_text,
+            height=125,
+            placeholder="Type or paste any online comment here...",
+        )
+
+        btn_label = "⚡ Run Multi-Model Comparison" if compare_all_mode else f"🛡️ Run Moderation with {selected_algo}"
+        if st.button(btn_label, type="primary", use_container_width=True):
+            if not comment_input.strip():
+                st.warning("Please enter valid comment text before running moderation.")
+            else:
+                # Load selected model payload with strict isolation
+                try:
+                    selected_payload = load_model_payload(selected_algo)
+                except Exception as err:
+                    st.error(f"❌ Error loading model artifact for **{selected_algo}**: {err}")
+                    selected_payload = None
+
+                if selected_payload:
+                    active_pipeline = selected_payload["pipeline"]
+                    active_cols = selected_payload.get("feature_columns", ALL_FEATURES)
+                    df_single = extract_single_comment_features(comment_input, selected_tod, active_cols)
+
+                    # Execute timed inference with selected model
+                    t_start = time.perf_counter()
+                    decision = policy.evaluate(
+                        pipeline=active_pipeline,
+                        features_df=df_single,
+                        raw_text=comment_input,
+                        algorithm_name=selected_algo,
+                        algorithm_track=algo_meta["track"],
+                    )
+                    latency_ms = (time.perf_counter() - t_start) * 1000.0
+
+                    st.subheader(f"🔍 Moderation Decision — {selected_algo}")
+
+                    # Metric KPI Row
+                    m_col1, m_col2, m_col3, m_col4 = st.columns(4)
+                    with m_col1:
+                        if decision.supports_probability and decision.toxic_probability is not None:
+                            st.metric("Toxic Probability P(Toxic)", f"{decision.toxic_probability:.1%}")
+                        else:
+                            st.metric("Decision Margin Score", f"{decision.decision_score:+.3f}")
+                    with m_col2:
+                        if decision.supports_probability and decision.civil_probability is not None:
+                            st.metric("Civil Probability P(Civil)", f"{decision.civil_probability:.1%}")
+                        else:
+                            st.metric("Boundary Cutoff", "0.000 (Hyperplane)")
+                    with m_col3:
+                        st.metric("Binary Class", f"{decision.predicted_class} ({decision.predicted_label})")
+                    with m_col4:
+                        st.metric("Inference Latency", f"{latency_ms:.2f} ms")
+
+                    res_col1, res_col2 = st.columns([2, 3])
+
+                    with res_col1:
+                        score_label = (
+                            f"{decision.toxic_probability:.1%} P(Toxic)"
+                            if (decision.supports_probability and decision.toxic_probability is not None)
+                            else f"Margin: {decision.decision_score:+.3f}"
+                        )
+
+                        if decision.decision_action == "APPROVED":
+                            st.markdown(
+                                f"""
+                            <div class="pred-box pred-box-safe">
+                                <h3 style="color: #34D399; margin: 0;">✅ APPROVED: SAFE</h3>
+                                <p style="color: #94A3B8; margin: 6px 0 0 0;">Comment cleared safety cutoff for this model.</p>
+                                <h2 style="color: #10B981; margin: 12px 0 0 0;">{score_label}</h2>
+                            </div>
+                            """,
+                                unsafe_allow_html=True,
+                            )
+                        elif decision.decision_action == "HELD FOR REVIEW":
+                            st.markdown(
+                                f"""
+                            <div class="pred-box pred-box-warning">
+                                <h3 style="color: #FBBF24; margin: 0;">🟡 HELD FOR REVIEW</h3>
+                                <p style="color: #94A3B8; margin: 6px 0 0 0;">Ambiguous / Borderline. Escalated to human review.</p>
+                                <h2 style="color: #F59E0B; margin: 12px 0 0 0;">{score_label}</h2>
+                            </div>
+                            """,
+                                unsafe_allow_html=True,
+                            )
+                        else:
+                            st.markdown(
+                                f"""
+                            <div class="pred-box pred-box-toxic">
+                                <h3 style="color: #FB7185; margin: 0;">🔴 QUARANTINED</h3>
+                                <p style="color: #94A3B8; margin: 6px 0 0 0;">Flagged for safety violation by {selected_algo}.</p>
+                                <h2 style="color: #F43F5E; margin: 12px 0 0 0;">{score_label}</h2>
+                            </div>
+                            """,
+                                unsafe_allow_html=True,
+                            )
+
+                    with res_col2:
+                        st.markdown("#### Operational Routing Action")
+                        if decision.decision_action == "APPROVED":
+                            st.success(f"🟢 **{decision.routing_tier}**: {decision.explanation}")
+                        elif decision.decision_action == "HELD FOR REVIEW":
+                            st.warning(f"🟡 **{decision.routing_tier}**: {decision.explanation}")
+                        else:
+                            st.error(f"🔴 **{decision.routing_tier}**: {decision.explanation}")
+
+                        st.markdown(
+                            f"**Epistemic Ambiguity Score:** `{decision.uncertainty_score:.2f}` "
+                            "(1.0 = maximum ambiguity near decision boundary, 0.0 = decisive)"
+                        )
+                        if not decision.supports_probability:
+                            st.caption(
+                                "ℹ️ *Note on Linear SVC*: Computes geometric margin distance $w^T x + b$. "
+                                "Platt probability scaling was disabled during training to preserve strict maximal-margin optimization."
+                            )
+
+                    # Feature Vector Display
+                    st.markdown("#### Extracted Surface Feature Vector")
+                    feat_display = df_single.drop(columns=["comment_text"], errors="ignore").T
+                    st.dataframe(feat_display.rename(columns={0: "Feature Value"}), use_container_width=True)
+
+                    # ==========================================
+                    # SIDE-BY-SIDE 10-MODEL COMPARISON MODE
+                    # ==========================================
+                    if compare_all_mode:
+                        st.markdown("---")
+                        st.subheader("⚡ 10-Model Live Comparative Benchmark")
+                        st.caption("Direct side-by-side comparison of every algorithm on this exact comment input.")
+
+                        comparison_rows = []
+                        for name in algo_catalog:
+                            try:
+                                m_payload = load_model_payload(name)
+                            except Exception as err:
+                                st.warning(f"Could not load {name}: {err}")
+                                m_payload = None
+
+                            if m_payload:
+                                m_cols = m_payload.get("feature_columns", ALL_FEATURES)
+                                m_single = extract_single_comment_features(comment_input, selected_tod, m_cols)
+                                m_t0 = time.perf_counter()
+                                m_dec = policy.evaluate(
+                                    pipeline=m_payload["pipeline"],
+                                    features_df=m_single,
+                                    raw_text=comment_input,
+                                    algorithm_name=name,
+                                    algorithm_track=algo_catalog[name]["track"],
+                                )
+                                m_lat = (time.perf_counter() - m_t0) * 1000.0
+
+                                score_str = (
+                                    f"{m_dec.toxic_probability:.1%}"
+                                    if (m_dec.supports_probability and m_dec.toxic_probability is not None)
+                                    else f"Margin: {m_dec.decision_score:+.2f}"
+                                )
+
+                                action_icon = (
+                                    "✅ Approved" if m_dec.decision_action == "APPROVED"
+                                    else "🟡 Review" if m_dec.decision_action == "HELD FOR REVIEW"
+                                    else "🔴 Quarantined"
+                                )
+
+                                comparison_rows.append({
+                                    "Algorithm": name,
+                                    "Track": algo_catalog[name]["track"],
+                                    "Decision Action": action_icon,
+                                    "Predicted Class": f"Class {m_dec.predicted_class} ({m_dec.predicted_label})",
+                                    "Toxic Score / Margin": score_str,
+                                    "Latency (ms)": f"{m_lat:.2f} ms",
+                                    "Ambiguity": f"{m_dec.uncertainty_score:.2f}",
+                                })
+
+                        df_comp_table = pd.DataFrame(comparison_rows)
+                        st.dataframe(df_comp_table, use_container_width=True)
+                        st.caption("Notice how different algorithms express varying sensitivity and trade-offs on the same input.")
+
+    else:
+        # ==========================================
+        # 4 UNSUPERVISED CLUSTERING ALGORITHMS
+        # ==========================================
+        clustering_algos = {
+            "K-Means": {
+                "type": "Centroid Partitioning",
+                "linkage": "None (Euclidean Centroid Distance)",
+                "desc": "Iteratively partitions samples into k spherical voronoi cells minimizing within-cluster inertia.",
+                "asset_plot": "elbow",
+            },
+            "Agglomerative Clustering — Ward Linkage": {
+                "type": "Hierarchical Agglomerative",
+                "linkage": "Ward Linkage (Minimum Variance)",
+                "desc": "Bottom-up agglomeration minimizing total within-cluster variance. Yields compact, balanced clusters.",
+                "asset_plot": "dendrogram",
+            },
+            "Agglomerative Clustering — Complete Linkage": {
+                "type": "Hierarchical Agglomerative",
+                "linkage": "Complete Linkage (Maximum Pairwise Distance)",
+                "desc": "Hierarchical merging by farthest-neighbor distance. Highly susceptible to severe chaining on text outliers.",
+                "asset_plot": "dendrogram",
+            },
+            "Agglomerative Clustering — Average Linkage": {
+                "type": "Hierarchical Agglomerative",
+                "linkage": "Average Linkage (Mean Pairwise Distance)",
+                "desc": "Hierarchical merging by average distance between all point pairs across clusters. Exhibits outlier chaining.",
+                "asset_plot": "dendrogram",
+            },
+        }
+
+        col_cl_algo, col_cl_k = st.columns([3, 1])
+        with col_cl_algo:
+            selected_cl_algo = st.selectbox(
+                "🌌 Select Clustering Algorithm:",
+                options=list(clustering_algos.keys()),
+                index=0,
+                help="Select any of the 4 Review 2 unsupervised clustering algorithms to run live clustering.",
+            )
+        with col_cl_k:
+            selected_k = st.slider(
+                "Number of Clusters (k):",
+                min_value=2,
+                max_value=10,
+                value=5,
+                step=1,
+                help="Select k clusters. Review 2 rubric benchmark default is k = 5.",
+            )
+
+        cl_meta = clustering_algos[selected_cl_algo]
+        badge_style = "badge-emerald" if selected_cl_algo == "K-Means" else "badge-violet"
+
         st.markdown(
-            r"""
-        - **Auto-Approve Threshold ($\tau_{\text{approve}}$):** `30.0%` (Only comments with $P(\text{Toxic}) < 30\%$ are auto-approved)
-        - **Classification Cutoff:** `50.0%` ($P \ge 50\%$ maps to binary class 1)
-        - **Auto-Quarantine Threshold ($\tau_{\text{quarantine}}$):** `70.0%` (Comments with $P(\text{Toxic}) \ge 70\%$ are quarantined)
-        - **Borderline Ambiguity Window:** `[30.0%, 70.0%)` (Strictly held for secondary review; **NEVER APPROVED**)
-        - **Non-Probability Classifiers (e.g. Linear SVC):** Operates on raw functional margins ($w^T x + b$). Positive margins ($\ge 0.000$) map to quarantine. Uncalibrated negative margins ($< 0.000$) are conservatively held for **Secondary Review** rather than auto-approved, preventing false safety assurances from uncalibrated baseline models lacking text representation.
-        """
+            f"""
+        <div style="background: #131B2E; border: 1px solid rgba(139, 92, 246, 0.25); border-radius: 12px; padding: 14px 18px; margin-bottom: 16px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+                <div>
+                    <span class="badge {badge_style}">{cl_meta["type"]}</span>
+                    <b style="color: #F8FAFC; font-size: 1.05rem;">{selected_cl_algo}</b>
+                    <span style="color: #94A3B8; font-size: 0.9rem; margin-left: 10px;">— {cl_meta["desc"]}</span>
+                </div>
+                <div style="font-size: 0.82rem; color: #38BDF8; font-family: 'JetBrains Mono', monospace;">
+                    Criterion: {cl_meta["linkage"]} | Target: k = {selected_k}
+                </div>
+            </div>
+        </div>
+        """,
+            unsafe_allow_html=True,
         )
 
-    # Benchmark presets
-    presets = {
-        "Select an example...": "",
-        "Borderline Admonition (Bug Case)": "Mind your fucking Language",
-        "Severe Hostile Attack": "Shut your ugly mouth you disgusting pig and get lost.",
-        "Civil Disagreement": "I respectfully disagree with your conclusion regarding tax policy, though your point on tariffs is well argued.",
-        "Benign Shouting (High Caps)": "CONGRATULATIONS ON PASSING YOUR EXAMS BROTHER I AM SO PROUD OF YOU!!!!",
-        "Colloquial / Enthusiastic Profanity": "Holy shit I cannot believe that actually worked",
-        "Neutral Observation": "The weather today has been unusually calm for mid-October.",
-    }
-
-    col_preset, col_tod = st.columns([3, 1])
-    with col_preset:
-        selected_preset = st.selectbox("Quick Benchmark Presets:", list(presets.keys()))
-    with col_tod:
-        selected_tod = st.selectbox(
-            "Time of Day:",
-            ["Morning", "Afternoon", "Evening", "Night", "Unknown"],
-            index=["Morning", "Afternoon", "Evening", "Night", "Unknown"].index(get_current_time_category()),
-        )
-
-    default_text = presets[selected_preset] if selected_preset != "Select an example..." else ""
-    comment_input = st.text_area(
-        "Enter Comment Text for Moderation:",
-        value=default_text,
-        height=125,
-        placeholder="Type or paste any online comment here...",
-    )
-
-    btn_label = "⚡ Run Multi-Model Comparison" if compare_all_mode else f"🛡️ Run Moderation with {selected_algo}"
-    if st.button(btn_label, type="primary", use_container_width=True):
-        if not comment_input.strip():
-            st.warning("Please enter valid comment text before running moderation.")
+        # Compute clustering model
+        cl_res = compute_clustering_model(selected_cl_algo, selected_k)
+        if cl_res is None:
+            st.error("Failed to load clustering dataset data/train_sample_50k.csv.")
         else:
-            # Load selected model payload with strict isolation
-            try:
-                selected_payload = load_model_payload(selected_algo)
-            except Exception as err:
-                st.error(f"❌ Error loading model artifact for **{selected_algo}**: {err}")
-                selected_payload = None
-
-            if selected_payload:
-                active_pipeline = selected_payload["pipeline"]
-                active_cols = selected_payload.get("feature_columns", ALL_FEATURES)
-                df_single = extract_single_comment_features(comment_input, selected_tod, active_cols)
-
-                # Execute timed inference with selected model
-                t_start = time.perf_counter()
-                decision = policy.evaluate(
-                    pipeline=active_pipeline,
-                    features_df=df_single,
-                    raw_text=comment_input,
-                    algorithm_name=selected_algo,
-                    algorithm_track=algo_meta["track"],
+            # Metric KPI Cards
+            kpi_col1, kpi_col2, kpi_col3, kpi_col4 = st.columns(4)
+            with kpi_col1:
+                st.metric(
+                    "Silhouette Score (↑)",
+                    f"{cl_res['silhouette']:.4f}",
+                    help="Range [-1, 1]. Measures cohesion within clusters vs separation from other clusters. Higher is better.",
                 )
-                latency_ms = (time.perf_counter() - t_start) * 1000.0
+            with kpi_col2:
+                st.metric(
+                    "Davies-Bouldin Index (↓)",
+                    f"{cl_res['davies_bouldin']:.4f}",
+                    help="Range [0, ∞). Measures average similarity of each cluster to its most similar cluster. Lower is better.",
+                )
+            with kpi_col3:
+                st.metric(
+                    "Calinski-Harabasz Index (↑)",
+                    f"{cl_res['calinski_harabasz']:.1f}",
+                    help="Variance ratio criterion: ratio of between-cluster dispersion to within-cluster dispersion. Higher is better.",
+                )
+            with kpi_col4:
+                st.metric(
+                    "Partitions (k)",
+                    f"{selected_k} Clusters",
+                    help=f"Dataset: N = {len(cl_res['labels']):,} comments strictly without labels",
+                )
 
-                st.subheader(f"🔍 Moderation Decision — {selected_algo}")
+            # Interactive Single Comment Assignment Section
+            st.markdown("---")
+            st.subheader("💬 Live Comment Cluster Assignment")
+            st.markdown(
+                "Enter any comment to extract its 9 unsupervised syntactic/surface dimensions, project into the "
+                "standardized feature space, and identify its nearest cluster assignment geometrically."
+            )
 
-                # Metric KPI Row
-                m_col1, m_col2, m_col3, m_col4 = st.columns(4)
-                with m_col1:
-                    if decision.supports_probability and decision.toxic_probability is not None:
-                        st.metric("Toxic Probability P(Toxic)", f"{decision.toxic_probability:.1%}")
-                    else:
-                        st.metric("Decision Margin Score", f"{decision.decision_score:+.3f}")
-                with m_col2:
-                    if decision.supports_probability and decision.civil_probability is not None:
-                        st.metric("Civil Probability P(Civil)", f"{decision.civil_probability:.1%}")
-                    else:
-                        st.metric("Boundary Cutoff", "0.000 (Hyperplane)")
-                with m_col3:
-                    st.metric("Binary Class", f"{decision.predicted_class} ({decision.predicted_label})")
-                with m_col4:
-                    st.metric("Inference Latency", f"{latency_ms:.2f} ms")
+            cl_presets = {
+                "Select an example...": "",
+                "Short Greeting": "Hello there, how are you doing today?",
+                "Shouting / High Caps": "STOP DOING THIS RIGHT NOW PLEASE LISTEN TO ME!!!!",
+                "Punctuation Heavy": "Why??? What happened??? That is unbelievable!?!?!",
+                "Long Analytical Paragraph": "The empirical distribution of natural language parameters demonstrates consistent zipfian properties across multiple communicative domains.",
+                "Hostile Short Attack": "You are pathetic and disgusting get out.",
+            }
 
-                res_col1, res_col2 = st.columns([2, 3])
+            col_cl_p, col_cl_blank = st.columns([3, 1])
+            with col_cl_p:
+                selected_cl_preset = st.selectbox("Clustering Preset Examples:", list(cl_presets.keys()))
 
-                with res_col1:
-                    score_label = (
-                        f"{decision.toxic_probability:.1%} P(Toxic)"
-                        if (decision.supports_probability and decision.toxic_probability is not None)
-                        else f"Margin: {decision.decision_score:+.3f}"
+            default_cl_text = cl_presets[selected_cl_preset] if selected_cl_preset != "Select an example..." else ""
+            cl_comment_input = st.text_area(
+                "Enter Comment for Unsupervised Cluster Assignment:",
+                value=default_cl_text,
+                height=90,
+                placeholder="Type or paste any text to inspect its structural feature cluster...",
+                key="clustering_input_text",
+            )
+
+            user_comment_point = None
+            assigned_cluster_info = None
+
+            if st.button(f"🌌 Assign to Cluster ({selected_cl_algo})", type="primary", use_container_width=True):
+                if not cl_comment_input.strip():
+                    st.warning("Please enter comment text before running cluster assignment.")
+                else:
+                    df_single_cl = extract_single_comment_features(cl_comment_input, "Unknown", NUMERICAL_FEATURES)
+                    X_comment_raw = df_single_cl[NUMERICAL_FEATURES].copy()
+                    for col in ["comment_length", "word_count"]:
+                        if col in X_comment_raw.columns:
+                            X_comment_raw[col] = np.log1p(X_comment_raw[col])
+                    X_comment_scaled = cl_res["scaler"].transform(X_comment_raw)
+
+                    # Compute distance to each cluster centroid
+                    centroids = cl_res["centroids"]
+                    dists = np.linalg.norm(centroids - X_comment_scaled, axis=1)
+                    assigned_cluster = int(np.argmin(dists))
+                    min_dist = float(dists[assigned_cluster])
+
+                    # Project comment to PCA space
+                    comment_pca = cl_res["pca"].transform(X_comment_scaled)[0]
+                    user_comment_point = comment_pca
+                    assigned_cluster_info = {
+                        "cluster": assigned_cluster,
+                        "dist": min_dist,
+                        "pca": comment_pca,
+                        "features": df_single_cl,
+                    }
+
+                    col_res_a, col_res_b = st.columns([1, 2])
+                    with col_res_a:
+                        st.markdown(
+                            f"""
+                        <div class="metric-card" style="border-color: #8B5CF6; padding: 16px;">
+                            <div style="color: #A78BFA; font-size: 0.85rem; font-weight: 600;">ASSIGNED CLUSTER</div>
+                            <div class="metric-value" style="font-size: 2.2rem; margin: 6px 0;">Cluster {assigned_cluster}</div>
+                            <div style="color: #94A3B8; font-size: 0.85rem;">Distance to Centroid: <b>{min_dist:.3f}</b></div>
+                            <div style="color: #38BDF8; font-size: 0.8rem; margin-top: 4px;">PCA: [{comment_pca[0]:.2f}, {comment_pca[1]:.2f}]</div>
+                        </div>
+                        """,
+                            unsafe_allow_html=True,
+                        )
+                    with col_res_b:
+                        st.markdown(f"#### Cluster {assigned_cluster} Structural Profile")
+                        total_in_cluster = cl_res["cluster_counts"].get(assigned_cluster, 0)
+                        share_pct = (total_in_cluster / len(cl_res["labels"])) * 100.0
+                        st.info(
+                            f"📌 **Cluster {assigned_cluster}** contains **{total_in_cluster:,} samples** ({share_pct:.1f}% of corpus). "
+                            f"Assignment is computed purely geometrically in the 9-dimensional standardized feature space. "
+                            f"**No ground-truth labels, toxic probabilities, or classification metrics are used in unsupervised clustering.**"
+                        )
+
+            # 2D PCA & Cluster Distribution Visualizations
+            st.markdown("---")
+            st.subheader(f"🖼️ Cluster Visualizations — {selected_cl_algo} (k = {selected_k})")
+
+            col_v1, col_v2 = st.columns([3, 2])
+            with col_v1:
+                pca_df = pd.DataFrame({
+                    "PC1": cl_res["X_pca"][:, 0],
+                    "PC2": cl_res["X_pca"][:, 1],
+                    "Cluster": [f"Cluster {lbl}" for lbl in cl_res["labels"]],
+                    "Snippet": [str(txt)[:80] + ("..." if len(str(txt)) > 80 else "") for txt in cl_res["df_sample"]["comment_text"]],
+                })
+
+                fig_pca = px.scatter(
+                    pca_df,
+                    x="PC1",
+                    y="PC2",
+                    color="Cluster",
+                    hover_data={"Snippet": True, "PC1": ":.2f", "PC2": ":.2f", "Cluster": True},
+                    color_discrete_sequence=px.colors.qualitative.Bold,
+                    opacity=0.6,
+                )
+
+                # Project and plot centroids
+                centroids_pca = cl_res["pca"].transform(cl_res["centroids"])
+                fig_pca.add_trace(
+                    go.Scatter(
+                        x=centroids_pca[:, 0],
+                        y=centroids_pca[:, 1],
+                        mode="markers+text",
+                        marker=dict(symbol="cross", size=14, color="#FFFFFF", line=dict(width=2, color="#000000")),
+                        text=[f"C{i}" for i in range(len(centroids_pca))],
+                        textposition="top center",
+                        textfont=dict(color="#FFFFFF", size=11, family="Inter"),
+                        name="Centroids",
+                    )
+                )
+
+                if user_comment_point is not None:
+                    fig_pca.add_trace(
+                        go.Scatter(
+                            x=[user_comment_point[0]],
+                            y=[user_comment_point[1]],
+                            mode="markers+text",
+                            marker=dict(symbol="star", size=20, color="#F43F5E", line=dict(width=2, color="#FFFFFF")),
+                            text=["★ Your Input"],
+                            textposition="top center",
+                            textfont=dict(color="#F43F5E", size=13, family="Inter"),
+                            name="Your Input",
+                        )
                     )
 
-                    if decision.decision_action == "APPROVED":
-                        st.markdown(
-                            f"""
-                        <div class="pred-box pred-box-safe">
-                            <h3 style="color: #34D399; margin: 0;">✅ APPROVED: SAFE</h3>
-                            <p style="color: #94A3B8; margin: 6px 0 0 0;">Comment cleared safety cutoff for this model.</p>
-                            <h2 style="color: #10B981; margin: 12px 0 0 0;">{score_label}</h2>
-                        </div>
-                        """,
-                            unsafe_allow_html=True,
-                        )
-                    elif decision.decision_action == "HELD FOR REVIEW":
-                        st.markdown(
-                            f"""
-                        <div class="pred-box pred-box-warning">
-                            <h3 style="color: #FBBF24; margin: 0;">🟡 HELD FOR REVIEW</h3>
-                            <p style="color: #94A3B8; margin: 6px 0 0 0;">Ambiguous / Borderline. Escalated to human review.</p>
-                            <h2 style="color: #F59E0B; margin: 12px 0 0 0;">{score_label}</h2>
-                        </div>
-                        """,
-                            unsafe_allow_html=True,
-                        )
-                    else:
-                        st.markdown(
-                            f"""
-                        <div class="pred-box pred-box-toxic">
-                            <h3 style="color: #FB7185; margin: 0;">🔴 QUARANTINED</h3>
-                            <p style="color: #94A3B8; margin: 6px 0 0 0;">Flagged for safety violation by {selected_algo}.</p>
-                            <h2 style="color: #F43F5E; margin: 12px 0 0 0;">{score_label}</h2>
-                        </div>
-                        """,
-                            unsafe_allow_html=True,
-                        )
+                dark_plotly_layout(fig_pca, f"PCA 2D Cluster Space — {selected_cl_algo} (k={selected_k})", height=460)
+                fig_pca.update_xaxes(
+                    title_text=f"Principal Component 1 ({cl_res['pca_var'][0]:.1f}% variance)",
+                    gridcolor="rgba(148, 163, 184, 0.1)",
+                )
+                fig_pca.update_yaxes(
+                    title_text=f"Principal Component 2 ({cl_res['pca_var'][1]:.1f}% variance)",
+                    gridcolor="rgba(148, 163, 184, 0.1)",
+                )
+                st.plotly_chart(fig_pca, use_container_width=True)
 
-                with res_col2:
-                    st.markdown("#### Operational Routing Action")
-                    if decision.decision_action == "APPROVED":
-                        st.success(f"🟢 **{decision.routing_tier}**: {decision.explanation}")
-                    elif decision.decision_action == "HELD FOR REVIEW":
-                        st.warning(f"🟡 **{decision.routing_tier}**: {decision.explanation}")
-                    else:
-                        st.error(f"🔴 **{decision.routing_tier}**: {decision.explanation}")
+            with col_v2:
+                df_counts = pd.DataFrame([
+                    {
+                        "Cluster": f"Cluster {c}",
+                        "Count": count,
+                        "Percentage": f"{(count / len(cl_res['labels'])) * 100:.1f}%",
+                    }
+                    for c, count in sorted(cl_res["cluster_counts"].items())
+                ])
+                fig_bar = px.bar(
+                    df_counts,
+                    x="Cluster",
+                    y="Count",
+                    text="Percentage",
+                    color="Cluster",
+                    color_discrete_sequence=px.colors.qualitative.Bold,
+                )
+                fig_bar.update_traces(textposition="outside")
+                dark_plotly_layout(fig_bar, f"Cluster Size Distribution (N = {len(cl_res['labels']):,})", height=250)
+                st.plotly_chart(fig_bar, use_container_width=True)
 
-                    st.markdown(
-                        f"**Epistemic Ambiguity Score:** `{decision.uncertainty_score:.2f}` "
-                        "(1.0 = maximum ambiguity near decision boundary, 0.0 = decisive)"
-                    )
-                    if not decision.supports_probability:
-                        st.caption(
-                            "ℹ️ *Note on Linear SVC*: Computes geometric margin distance $w^T x + b$. "
-                            "Platt probability scaling was disabled during training to preserve strict maximal-margin optimization."
-                        )
+                if selected_cl_algo == "K-Means":
+                    st.markdown("##### 📉 K-Means Elbow Curve Diagnostic")
+                    p_elbow = ROOT_DIR / "assets" / "clustering" / "01_kmeans_elbow_curve.png"
+                    if not p_elbow.exists():
+                        p_elbow = ROOT_DIR / "assets" / "elbow_curve.png"
+                    if p_elbow.exists():
+                        st.image(str(p_elbow), caption="Inertia vs k (2 to 10): Confirms optimal elbow bend at k = 5.", use_container_width=True)
+                else:
+                    st.markdown("##### 🌳 Hierarchical Dendrogram Diagnostic")
+                    p_dendro = ROOT_DIR / "assets" / "clustering" / "04_hierarchical_dendrograms.png"
+                    if not p_dendro.exists():
+                        p_dendro = ROOT_DIR / "assets" / "dendrograms.png"
+                    if p_dendro.exists():
+                        st.image(str(p_dendro), caption="Agglomerative Dendrograms (Ward, Complete, Average). Illustrates hierarchical merge thresholds.", use_container_width=True)
 
-                # Feature Vector Display
-                st.markdown("#### Extracted Surface Feature Vector")
-                feat_display = df_single.drop(columns=["comment_text"], errors="ignore").T
-                st.dataframe(feat_display.rename(columns={0: "Feature Value"}), use_container_width=True)
+            # 4-Method Comprehensive Comparison Table
+            st.markdown("---")
+            st.subheader(f"📊 4-Method Comprehensive Clustering Benchmark (k = {selected_k})")
+            st.caption("Live empirical comparison of all 4 clustering methods computed across the identical 3,000-sample feature space.")
 
-                # ==========================================
-                # SIDE-BY-SIDE 10-MODEL COMPARISON MODE
-                # ==========================================
-                if compare_all_mode:
-                    st.markdown("---")
-                    st.subheader("⚡ 10-Model Live Comparative Benchmark")
-                    st.caption("Direct side-by-side comparison of every algorithm on this exact comment input.")
+            df_all_comp = compute_all_clustering_comparison(selected_k)
+            st.dataframe(
+                df_all_comp.style.format({
+                    "Silhouette Score (↑)": "{:.4f}",
+                    "Davies-Bouldin Index (↓)": "{:.4f}",
+                    "Calinski-Harabasz Index (↑)": "{:.2f}",
+                }),
+                use_container_width=True,
+            )
 
-                    comparison_rows = []
-                    for name in algo_catalog:
-                        try:
-                            m_payload = load_model_payload(name)
-                        except Exception as err:
-                            st.warning(f"Could not load {name}: {err}")
-                            m_payload = None
+            # Dynamic Scientific Interpretation
+            comp_row = df_all_comp[df_all_comp["Clustering Method"].str.contains("Complete")]
+            avg_row = df_all_comp[df_all_comp["Clustering Method"].str.contains("Average")]
+            km_row = df_all_comp[df_all_comp["Clustering Method"].str.contains("K-Means")]
+            wd_row = df_all_comp[df_all_comp["Clustering Method"].str.contains("Ward")]
 
-                        if m_payload:
-                            m_cols = m_payload.get("feature_columns", ALL_FEATURES)
-                            m_single = extract_single_comment_features(comment_input, selected_tod, m_cols)
-                            m_t0 = time.perf_counter()
-                            m_dec = policy.evaluate(
-                                pipeline=m_payload["pipeline"],
-                                features_df=m_single,
-                                raw_text=comment_input,
-                                algorithm_name=name,
-                                algorithm_track=algo_catalog[name]["track"],
-                            )
-                            m_lat = (time.perf_counter() - m_t0) * 1000.0
+            km_ch = km_row["Calinski-Harabasz Index (↑)"].values[0] if not km_row.empty else 0.0
+            wd_ch = wd_row["Calinski-Harabasz Index (↑)"].values[0] if not wd_row.empty else 0.0
+            comp_sil = comp_row["Silhouette Score (↑)"].values[0] if not comp_row.empty else 0.0
+            avg_sil = avg_row["Silhouette Score (↑)"].values[0] if not avg_row.empty else 0.0
 
-                            score_str = (
-                                f"{m_dec.toxic_probability:.1%}"
-                                if (m_dec.supports_probability and m_dec.toxic_probability is not None)
-                                else f"Margin: {m_dec.decision_score:+.2f}"
-                            )
-
-                            action_icon = (
-                                "✅ Approved" if m_dec.decision_action == "APPROVED"
-                                else "🟡 Review" if m_dec.decision_action == "HELD FOR REVIEW"
-                                else "🔴 Quarantined"
-                            )
-
-                            comparison_rows.append({
-                                "Algorithm": name,
-                                "Track": algo_catalog[name]["track"],
-                                "Decision Action": action_icon,
-                                "Predicted Class": f"Class {m_dec.predicted_class} ({m_dec.predicted_label})",
-                                "Toxic Score / Margin": score_str,
-                                "Latency (ms)": f"{m_lat:.2f} ms",
-                                "Ambiguity": f"{m_dec.uncertainty_score:.2f}",
-                            })
-
-                    df_comp_table = pd.DataFrame(comparison_rows)
-                    st.dataframe(df_comp_table, use_container_width=True)
-                    st.caption("Notice how different algorithms express varying sensitivity and trade-offs on the same input.")
+            st.markdown(
+                f"""
+            <div style="background: rgba(30, 41, 59, 0.7); border-left: 4px solid #8B5CF6; border-radius: 8px; padding: 16px 20px; margin-top: 10px;">
+                <h5 style="color: #C084FC; margin-top: 0;">⚠️ Beware Deceptive Silhouette Scores — The Hierarchical Chaining Effect</h5>
+                <p style="color: #CBD5E1; font-size: 0.92rem; line-height: 1.6; margin-bottom: 8px;">
+                    Notice that <b>Complete Linkage</b> (Silhouette: <code>{comp_sil:.4f}</code>) and <b>Average Linkage</b> (Silhouette: <code>{avg_sil:.4f}</code>) 
+                    report nominally high Silhouette Scores. However, examining the <b>Largest Cluster Share</b> reveals severe <b>chaining behavior</b>: 
+                    over <b>99% of comments are dumped into a single monolithic cluster</b>, while the remaining clusters isolate only 1–4 extreme outliers.
+                </p>
+                <p style="color: #CBD5E1; font-size: 0.92rem; line-height: 1.6; margin-bottom: 8px;">
+                    In contrast, <b>K-Means</b> (Calinski-Harabasz: <code>{km_ch:.1f}</code>) and <b>Ward's Linkage</b> (Calinski-Harabasz: <code>{wd_ch:.1f}</code>) 
+                    enforce minimum within-cluster variance, generating <b>substantive, balanced partitions</b> with superior global cluster separation.
+                </p>
+                <p style="color: #94A3B8; font-size: 0.85rem; margin-bottom: 0;">
+                    <b>Rubric Takeaway:</b> Never declare Complete or Average Linkage the superior method solely based on Silhouette Score without verifying cluster partition balance. 
+                    Ward Linkage and K-Means remain the mathematically sound solutions for multi-dimensional text feature clustering.
+                </p>
+            </div>
+            """,
+                unsafe_allow_html=True,
+            )
 
 
 # ==========================================
